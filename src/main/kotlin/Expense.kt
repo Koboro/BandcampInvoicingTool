@@ -1,0 +1,1 @@
+data class Expense(val value: Int, private val description: String)
