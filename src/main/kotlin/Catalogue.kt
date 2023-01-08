@@ -40,10 +40,10 @@ class Catalogue {
     }
 
     private fun applyTrackSale(trackSale: TrackSale) {
-        val track: Track = findRelease(trackSale.releaseCatNo).findTrack(trackSale.trackName)
+        val track: Track = findRelease(trackSale.catNo).findTrack(trackSale.trackName)
             ?: throw Exception("No track with name ${trackSale.trackName}")
 
-        track.applySale(trackSale)
+        track.applySale(trackSale.value, trackSale.dateTime)
     }
 
     private fun findRelease(catNo: String): Release = releases.find { it.catNo == catNo }

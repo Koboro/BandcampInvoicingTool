@@ -1,3 +1,5 @@
+import kotlin.math.roundToInt
+
 class Split private constructor(splitEntries: Set<Pair<String, Float>>) : HashMap<String, Float>() {
 
     companion object {
@@ -25,4 +27,12 @@ class Split private constructor(splitEntries: Set<Pair<String, Float>>) : HashMa
 
         putAll(splitEntries)
     }
+
+    /**
+     * Calculates the shares to the nearest integer value based on the split values
+     *
+     * TODO rounding
+     */
+    fun calculateShares(value: Int): Map<String, Int> = map { it.key to (value * (it.value / 100)).roundToInt() }
+        .toMap()
 }

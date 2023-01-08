@@ -1,16 +1,30 @@
 import sales.ReleaseSale
+import sales.SaleItem
+import sales.TrackSale
 import java.time.LocalDateTime
 
 data class Release(
     val catNo: String,
-    val tracks: Set<Track>,
+    private val tracks: Set<Track>,
+    private val contract: Contract,
     private val expenses: MutableList<Expense> = mutableListOf(),
-    private val sales: MutableList<ReleaseSale> = mutableListOf()
+    private val sales: MutableList<Pair<Int, LocalDateTime>> = mutableListOf()
 ) {
 
-
-    fun applySale(sale: ReleaseSale) {
-        sales.add(sale)
+    fun applySale(saleItem: SaleItem) {
+        when (saleItem) {
+            is ReleaseSale -> {
+                sales.add(saleItem.value to saleItem.dateTime)
+            }
+            is TrackSale -> {
+                try {
+                    findTrack(saleItem.trackName)
+                } catch (e: Exception) {
+                    throw Exception("Could not apply track sale.", e)
+                }.applySale(saleItem.value, saleItem.dateTime)
+            }
+            else -> throw Exception("Unrecognised sale item.")
+        }
     }
 
     fun addExpense(expense: Expense) {
@@ -18,20 +32,73 @@ data class Release(
     }
 
     fun calculatePayout(from: LocalDateTime): Map<String, Int> {
-        val totalExpenses = expenses.map { it.value }.reduce { acc, value -> acc + value }
 
-        val totalSales = sales
-            .filter { it.dateTime.isAfter(from) }
-            .map { it.value }
-            .reduce { acc, value -> acc + value }
+        val outstandingExpensesPerArtist = calculateOutstandingExpensesPerArtist(from)
+        val sales = calculateSalesFrom(from)
 
-        val totalTrackSales = tracks.map { it.getTotalSalesFrom(from) }
-
-        // Apply sales to expenses
-        // Apply all track sales to expenses via artist split
-        // Combine values and return
-        TODO()
+        return sales.map {
+            val payout = contract.calculateArtistPayout(it.value, outstandingExpensesPerArtist[it.key]
+                ?: throw Exception("No expense listed for artist when trying to calculate artist payout"))
+            it.key to payout
+        }.toMap()
     }
 
-    fun findTrack(trackName: String): Track? = tracks.find { it.name == trackName }
+    fun findTrack(trackName: String): Track = tracks.find { it.name == trackName }
+        ?: throw IllegalArgumentException("Release $catNo does not contain track with name $trackName")
+
+    private fun calculateSalesFrom(from: LocalDateTime): Map<String, Int> {
+        val totalReleaseSales = sales
+            .filter { it.isAfterOrDuring(from) }
+            .sumOf { it.first }
+
+        val releaseShares = calculateReleaseSplit()
+            .calculateShares(totalReleaseSales)
+
+        val trackShares = calculateTrackSalesFrom(from)
+
+        return listOf(releaseShares, trackShares).combineIntMapsWithSummedValues()
+    }
+
+    private fun getTotalExpenses() = expenses.sumOf { it.value }
+
+    private fun calculateReleaseSplit(): Split {
+
+        val totalTracks = tracks.size
+
+        val splitMap = tracks.map { it.split }
+            .combineFloatMapsWithSummedValues()
+            .map { it.key to (it.value / totalTracks) }
+            .toTypedArray()
+
+        return Split.customSplit(splits = splitMap)
+    }
+
+    private fun calculateOutstandingExpensesPerArtist(until: LocalDateTime): Map<String, Int> {
+        val releaseSalesValue = sales
+            .filter { it.second.isBefore(until) }
+            .sumOf { it.first }
+
+        val releaseSalesPerArtist = calculateReleaseSplit().calculateShares(releaseSalesValue)
+        val trackSalesPerArtist = calculateTrackSalesUntil(until)
+
+        val totalSalesPerArtist = listOf(releaseSalesPerArtist, trackSalesPerArtist).combineIntMapsWithSummedValues()
+        val expensesPerArtist = calculateExpensesPerArtist()
+
+        return totalSalesPerArtist.map {
+            val outstandingExpenses = contract.calculateOutstandingExpenses(it.value, expensesPerArtist[it.key]
+                ?: throw Exception("No expense listed for artist when trying to calculate outstanding expenses."))
+            it.key to outstandingExpenses
+        }.toMap()
+    }
+
+    private fun calculateExpensesPerArtist(): Map<String, Int> = calculateReleaseSplit()
+        .calculateShares(getTotalExpenses())
+
+    private fun calculateTrackSalesUntil(until: LocalDateTime): Map<String, Int> = tracks
+        .map { it.calculateSalesUntil(until) }
+        .combineIntMapsWithSummedValues()
+
+    private fun calculateTrackSalesFrom(from: LocalDateTime): Map<String, Int> = tracks
+            .map { it.calculateSalesFrom(from) }
+            .combineIntMapsWithSummedValues()
 }
