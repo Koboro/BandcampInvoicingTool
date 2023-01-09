@@ -16,7 +16,7 @@ data class HeaderIndices(
 
         fun from(headerLine: String): HeaderIndices {
             val headerIndicesMap = headerLine
-                .replace("\u0000", "")
+                .replace("\u0000", "") // TODO better way to achieve this?
                 .replace("�", "")
                 .split(",")
                 .mapIndexed { index, columnHeader -> columnHeader.trim().lowercase() to index }
