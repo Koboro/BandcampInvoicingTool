@@ -3,7 +3,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import sales.ReleaseSale
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 class ReleaseTest {
 
@@ -17,10 +17,6 @@ class ReleaseTest {
     fun testCalculatePayout_HappyPath_BeforeExpensesPaid_CorrectAmount() {
         val contract = Contract(
             50f,
-            0f,
-            0f,
-            0f,
-            0f,
             0f
         )
 
@@ -32,6 +28,6 @@ class ReleaseTest {
 
         val release = Release(CAT_NO, setOf(simpleTrack1), contract, mutableListOf(expense))
 
-        release.applySale(ReleaseSale(CAT_NO, 20, LocalDateTime.now().minusDays(1)))
+        release.applySale(ReleaseSale(CAT_NO, 20, LocalDate.now().minusDays(1)))
     }
 }

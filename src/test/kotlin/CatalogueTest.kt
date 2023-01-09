@@ -30,10 +30,6 @@ class CatalogueTest {
 
         return Release("COMPLEX001", setOf(track1, track2, track3), Contract(
             0f,
-            0f,
-            0f,
-            0f,
-            0f,
             0f),
             expenses)
     }

@@ -1,4 +1,4 @@
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 // Shorthand conversion from Pair to Map.Entry
 fun <K,V> Pair<K,V>.toEntry() = object: Map.Entry<K,V> {
@@ -39,5 +39,5 @@ fun <T> Collection<Map<T, Float>>.combineFloatMapsWithSummedValues(): Map<T, Flo
     return totalTrackSales
 }
 
-fun Pair<Int, LocalDateTime>.isAfterOrDuring(from: LocalDateTime): Boolean =
+fun Pair<Int, LocalDate>.isAfterOrDuring(from: LocalDate): Boolean =
     this.second.isAfter(from) || this.second.isEqual(from)

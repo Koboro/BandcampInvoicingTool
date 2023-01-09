@@ -1,9 +1,9 @@
 package sales
 
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 interface SaleItem {
     val catNo: String
     val value: Int
-    val dateTime: LocalDateTime
+    val dateTime: LocalDate
 }

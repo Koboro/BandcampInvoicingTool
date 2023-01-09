@@ -1,9 +1,9 @@
 package sales
 
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 data class ReleaseSale(
     override val catNo: String,
     override val value: Int,
-    override val dateTime: LocalDateTime
+    override val dateTime: LocalDate
 ): SaleItem

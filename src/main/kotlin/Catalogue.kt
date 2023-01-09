@@ -1,7 +1,7 @@
 import sales.ReleaseSale
 import sales.SalesReport
 import sales.TrackSale
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 class Catalogue {
 
@@ -34,7 +34,7 @@ class Catalogue {
     /**
      * @return the mappings of sales values to be distributed {Artist Name -> Sale Value}
      */
-    fun calculatePayoutsFromDate(from: LocalDateTime): Map<String, Int> {
+    fun calculatePayoutsFromDate(from: LocalDate): Map<String, Int> {
         releases.map { it.calculatePayout(from) }
         TODO()
     }

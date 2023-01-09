@@ -8,10 +8,6 @@ class ContractTest {
 
         val contract = Contract(
             25f,
-            0f,
-            0f,
-            0f,
-            0f,
             0f
         )
 
@@ -25,10 +21,6 @@ class ContractTest {
 
         val contract = Contract(
             50f,
-            0f,
-            0f,
-            0f,
-            0f,
             0f
         )
 
@@ -43,10 +35,6 @@ class ContractTest {
 
         val contract = Contract(
             50f,
-            0f,
-            0f,
-            0f,
-            0f,
             0f
         )
 
@@ -61,11 +49,7 @@ class ContractTest {
 
         val contract = Contract(
             50f,
-            25f,
-            0f,
-            0f,
-            0f,
-            0f
+            25f
         )
 
         val result = contract.calculateArtistPayout(20, 0)
@@ -78,11 +62,7 @@ class ContractTest {
 
         val contract = Contract(
             50f,
-            25f,
-            0f,
-            0f,
-            0f,
-            0f
+            25f
         )
 
         val result = contract.calculateArtistPayout(20, 20)
@@ -95,11 +75,7 @@ class ContractTest {
 
         val contract = Contract(
             50f,
-            25f,
-            0f,
-            0f,
-            0f,
-            0f
+            25f
         )
 
         val result = contract.calculateArtistPayout(20, 8)

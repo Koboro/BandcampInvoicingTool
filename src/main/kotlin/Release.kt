@@ -1,14 +1,14 @@
 import sales.ReleaseSale
 import sales.SaleItem
 import sales.TrackSale
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 data class Release(
     val catNo: String,
     private val tracks: Set<Track>,
     private val contract: Contract,
     private val expenses: MutableList<Expense> = mutableListOf(),
-    private val sales: MutableList<Pair<Int, LocalDateTime>> = mutableListOf()
+    private val sales: MutableList<Pair<Int, LocalDate>> = mutableListOf()
 ) {
 
     fun applySale(saleItem: SaleItem) {
@@ -31,7 +31,7 @@ data class Release(
         expenses.add(expense)
     }
 
-    fun calculatePayout(from: LocalDateTime): Map<String, Int> {
+    fun calculatePayout(from: LocalDate): Map<String, Int> {
 
         val outstandingExpensesPerArtist = calculateOutstandingExpensesPerArtist(from)
         val sales = calculateSalesFrom(from)
@@ -46,7 +46,7 @@ data class Release(
     fun findTrack(trackName: String): Track = tracks.find { it.name == trackName }
         ?: throw IllegalArgumentException("Release $catNo does not contain track with name $trackName")
 
-    private fun calculateSalesFrom(from: LocalDateTime): Map<String, Int> {
+    private fun calculateSalesFrom(from: LocalDate): Map<String, Int> {
         val totalReleaseSales = sales
             .filter { it.isAfterOrDuring(from) }
             .sumOf { it.first }
@@ -73,7 +73,7 @@ data class Release(
         return Split.customSplit(splits = splitMap)
     }
 
-    private fun calculateOutstandingExpensesPerArtist(until: LocalDateTime): Map<String, Int> {
+    private fun calculateOutstandingExpensesPerArtist(until: LocalDate): Map<String, Int> {
         val releaseSalesValue = sales
             .filter { it.second.isBefore(until) }
             .sumOf { it.first }
@@ -94,11 +94,11 @@ data class Release(
     private fun calculateExpensesPerArtist(): Map<String, Int> = calculateReleaseSplit()
         .calculateShares(getTotalExpenses())
 
-    private fun calculateTrackSalesUntil(until: LocalDateTime): Map<String, Int> = tracks
+    private fun calculateTrackSalesUntil(until: LocalDate): Map<String, Int> = tracks
         .map { it.calculateSalesUntil(until) }
         .combineIntMapsWithSummedValues()
 
-    private fun calculateTrackSalesFrom(from: LocalDateTime): Map<String, Int> = tracks
+    private fun calculateTrackSalesFrom(from: LocalDate): Map<String, Int> = tracks
             .map { it.calculateSalesFrom(from) }
             .combineIntMapsWithSummedValues()
 }

@@ -1,4 +1,4 @@
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 data class Track(val name: String, val split: Split) {
 
@@ -7,9 +7,9 @@ data class Track(val name: String, val split: Split) {
      * - first -> Integer value representing minor currency value
      * - second -> Time of sale
      */
-    private val sales: MutableList<Pair<Int, LocalDateTime>> = mutableListOf()
+    private val sales: MutableList<Pair<Int, LocalDate>> = mutableListOf()
 
-    fun applySale(saleValue: Int, timeOfSale: LocalDateTime) {
+    fun applySale(saleValue: Int, timeOfSale: LocalDate) {
         sales.add(saleValue to timeOfSale)
     }
 
@@ -20,7 +20,7 @@ data class Track(val name: String, val split: Split) {
         return split.calculateShares(totalAllTimeSales)
     }
 
-    fun calculateSalesUntil(until: LocalDateTime): Map<String, Int> {
+    fun calculateSalesUntil(until: LocalDate): Map<String, Int> {
         val totalSales = sales
             .filter { it.second.isBefore(until) }
             .sumOf { it.first }
@@ -29,7 +29,7 @@ data class Track(val name: String, val split: Split) {
         return split.calculateShares(totalSales)
     }
 
-    fun calculateSalesFrom(from: LocalDateTime): Map<String, Int> {
+    fun calculateSalesFrom(from: LocalDate): Map<String, Int> {
 
         val totalSales = sales
             .filter { it.isAfterOrDuring(from) }

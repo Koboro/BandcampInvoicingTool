@@ -1,6 +1,6 @@
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 class TrackTest {
 
@@ -18,7 +18,7 @@ class TrackTest {
         val track = Track(TRACK_NAME, Split.singleSplit(ARTIST_1_NAME))
 
         val saleValue = 10
-        val timeOfSale = LocalDateTime.now()
+        val timeOfSale = LocalDate.now()
 
         track.applySale(saleValue, timeOfSale)
 
@@ -35,7 +35,7 @@ class TrackTest {
 
         val track = Track(TRACK_NAME, Split.evenSplit(ARTIST_1_NAME, ARTIST_2_NAME))
 
-        val timeOfSale = LocalDateTime.now()
+        val timeOfSale = LocalDate.now()
 
         track.applySale(10, timeOfSale)
 
@@ -54,7 +54,7 @@ class TrackTest {
 
         val track = Track(TRACK_NAME, Split.evenSplit(ARTIST_1_NAME, ARTIST_2_NAME, ARTIST_3_NAME))
 
-        val timeOfSale = LocalDateTime.now()
+        val timeOfSale = LocalDate.now()
 
         track.applySale(20, timeOfSale)
 
@@ -75,7 +75,7 @@ class TrackTest {
         val track = Track(TRACK_NAME, Split.singleSplit(ARTIST_1_NAME))
 
         val saleValue = 10
-        val timeOfSale = LocalDateTime.now()
+        val timeOfSale = LocalDate.now()
 
         track.applySale(saleValue, timeOfSale)
 
@@ -91,7 +91,7 @@ class TrackTest {
 
         val track = Track(TRACK_NAME, Split.singleSplit(ARTIST_1_NAME))
 
-        val timeOfSale = LocalDateTime.now()
+        val timeOfSale = LocalDate.now()
 
         track.applySale(10, timeOfSale)
 
