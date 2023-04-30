@@ -35,8 +35,7 @@ class Catalogue {
      * @return the mappings of sales values to be distributed {Artist Name -> Sale Value}
      */
     fun calculatePayoutsFromDate(from: LocalDate): Map<String, Int> {
-        releases.map { it.calculatePayout(from) }
-        TODO()
+        return releases.map { it.calculatePayout(from) }.combineIntMapsWithSummedValues()
     }
 
     private fun applyTrackSale(trackSale: TrackSale) {
