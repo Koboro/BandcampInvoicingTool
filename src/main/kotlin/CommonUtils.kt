@@ -20,13 +20,13 @@ fun Map<String, Int>.minusValues(other: Map<String, Int>): Map<String, Int> = th
     .toMap()
 
 fun <T> Collection<Map<T, Int>>.combineIntMapsWithSummedValues(): Map<T, Int> {
-    val totalTrackSales = mutableMapOf<T, Int>()
+    val accumulator = mutableMapOf<T, Int>()
 
-    this.forEach{ trackSalesMap -> trackSalesMap.forEach {
-            totalTrackSales.merge(it.key, it.value, Int::plus)
+    this.forEach{ map -> map.forEach {
+            accumulator.merge(it.key, it.value, Int::plus)
         } }
 
-    return totalTrackSales
+    return accumulator
 }
 
 fun <T> Collection<Map<T, Float>>.combineFloatMapsWithSummedValues(): Map<T, Float> {
