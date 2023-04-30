@@ -21,10 +21,17 @@ class BandcampSalesReportLineParser {
         // Invalid line
         if (!line.contains(",")) return null
 
-        val splitLine = line
+        val formattedLine = line
             .replace("\u0000", "")
-            .replace("�", "").
-            split(",")
+            .replace("�", "")
+
+        val splitLine = formattedLine.
+            split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)".toRegex())
+
+        if (splitLine.size != headerIndices.totalHeaders) {
+            println("Error - line does not contain as many values (${splitLine.size}) as there are headers(${headerIndices.totalHeaders}). Manual intervention required for line: $formattedLine")
+            return null
+        }
 
         val itemType = splitLine[headerIndices.itemTypeIndex]
         when (itemType) {
@@ -40,7 +47,7 @@ class BandcampSalesReportLineParser {
         val dateString = splitLine[headerIndices.dateIndex].split(" ")[0]
         val date = LocalDate.parse(dateString, dateTimeFormatter)
 
-        return when(itemType) {
+        return when (itemType) {
             "album" -> ReleaseSale(catNo, saleValue, date)
             "track" -> {
                 val trackName = splitLine[headerIndices.itemNameIndex]
