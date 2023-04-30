@@ -9,7 +9,7 @@ class BandcampSalesReportReader(
 
     fun read(location: String): List<SaleItem> {
         return File(location).inputStream().use {
-            val reader = it.bufferedReader()
+            val reader = it.bufferedReader(Charsets.UTF_16)
 
             val headerIndices = HeaderIndices.from(reader.readLine())
 
