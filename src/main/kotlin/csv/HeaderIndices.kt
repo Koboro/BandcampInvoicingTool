@@ -5,7 +5,8 @@ data class HeaderIndices(
     val itemNameIndex: Int,
     val catNoIndex: Int,
     val dateIndex: Int,
-    val netAmountIndex: Int
+    val netAmountIndex: Int,
+    val totalHeaders: Int
 ) {
     companion object {
         private const val HEADER_ITEM_TYPE = "item type"
@@ -27,7 +28,8 @@ data class HeaderIndices(
                 itemNameIndex = headerIndicesMap[HEADER_ITEM_NAME] ?: throw Exception("Could not create header indices. No column for item name"),
                 catNoIndex = headerIndicesMap[HEADER_CAT_NO] ?: throw Exception("Could not create header indices. No column for category number"),
                 dateIndex = headerIndicesMap[HEADER_DATE] ?: throw Exception("Could not create header indices. No column for date"),
-                netAmountIndex = headerIndicesMap[HEADER_NET_AMOUNT] ?: throw Exception("Could not create header indices. No column for net amount")
+                netAmountIndex = headerIndicesMap[HEADER_NET_AMOUNT] ?: throw Exception("Could not create header indices. No column for net amount"),
+                totalHeaders = headerIndicesMap.size
             )
         }
     }
