@@ -41,3 +41,6 @@ fun <T> Collection<Map<T, Float>>.combineFloatMapsWithSummedValues(): Map<T, Flo
 
 fun Pair<Int, LocalDate>.isAfterOrDuring(from: LocalDate): Boolean =
     this.second.isAfter(from) || this.second.isEqual(from)
+
+fun Pair<Int, LocalDate>.isBefore(until: LocalDate): Boolean =
+    this.second.isBefore(until)

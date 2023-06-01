@@ -31,10 +31,10 @@ data class Release(
         expenses.add(expense)
     }
 
-    fun calculatePayout(from: LocalDate): Map<String, Int> {
+    fun calculatePayout(from: LocalDate, to: LocalDate = LocalDate.now()): Map<String, Int> {
 
         val outstandingExpensesPerArtist = calculateOutstandingExpensesPerArtist(from)
-        val sales = calculateSalesFrom(from)
+        val sales = calculateSalesBetween(from, to)
 
         return sales.map {
             val payout = contract.calculateArtistPayout(it.value, outstandingExpensesPerArtist[it.key]
@@ -46,9 +46,10 @@ data class Release(
     fun findTrack(trackName: String): Track = tracks.find { it.name == trackName }
         ?: throw IllegalArgumentException("Release $catNo does not contain track with name $trackName")
 
-    private fun calculateSalesFrom(from: LocalDate): Map<String, Int> {
+    private fun calculateSalesBetween(from: LocalDate, to: LocalDate): Map<String, Int> {
         val totalReleaseSales = sales
             .filter { it.isAfterOrDuring(from) }
+            .filter { it.isBefore(to) }
             .sumOf { it.first }
 
         val releaseShares = calculateReleaseSplit()

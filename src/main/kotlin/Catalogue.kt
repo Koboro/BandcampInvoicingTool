@@ -19,7 +19,6 @@ class Catalogue {
         findRelease(releaseCatNo).addExpense(expense)
     }
 
-
     fun provideSalesData(salesReport: SalesReport) {
 
         salesReport.sales.map { saleItem ->
@@ -34,13 +33,12 @@ class Catalogue {
     /**
      * @return the mappings of sales values to be distributed {Artist Name -> Sale Value}
      */
-    fun calculatePayoutsFromDate(from: LocalDate): Map<String, Int> {
-        return releases.map { it.calculatePayout(from) }.combineIntMapsWithSummedValues()
+    fun calculatePayouts(from: LocalDate, to: LocalDate): Map<String, Int> {
+        return releases.map { it.calculatePayout(from, to) }.combineIntMapsWithSummedValues()
     }
 
     private fun applyTrackSale(trackSale: TrackSale) {
         val track: Track = findRelease(trackSale.catNo).findTrack(trackSale.trackName)
-            ?: throw Exception("No track with name ${trackSale.trackName}")
 
         track.applySale(trackSale.value, trackSale.dateTime)
     }
