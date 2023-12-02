@@ -87,7 +87,7 @@ data class Release(
         val releaseShares = calculateReleaseSplit()
             .calculateShares(totalReleaseSales)
 
-        val trackShares = calculateTrackSalesFrom(from)
+        val trackShares = calculateTrackSalesBetween(from, to)
 
         return listOf(releaseShares, trackShares).combineIntMapsWithSummedValues()
     }
@@ -131,7 +131,7 @@ data class Release(
         .map { it.calculateSalesUntil(until) }
         .combineIntMapsWithSummedValues()
 
-    private fun calculateTrackSalesFrom(from: LocalDate): Map<String, Int> = tracks
-            .map { it.calculateSalesFrom(from) }
+    private fun calculateTrackSalesBetween(from: LocalDate, to: LocalDate): Map<String, Int> = tracks
+            .map { it.calculateSalesBetween(from, to) }
             .combineIntMapsWithSummedValues()
 }
