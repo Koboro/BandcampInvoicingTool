@@ -52,10 +52,7 @@ class Catalogue {
     private fun applyBundleSale(bundleSale: BundleSale) {
 
         if (bundleSale.itemName.contains("full digital discography")) {
-            releases.asSequence()
-                .filter { it.wasActivelySellingOn(bundleSale.dateTime) }
-                .toSet()
-                .getBundleSplit(bundleSale.dateTime)
+            releases.getBundleSplit(bundleSale.dateTime)
                 .calculateShares(bundleSale.value)
                 .map { ReleaseSale(it.key, it.value, bundleSale.dateTime) }
                 .forEach(this::applyReleaseSale)
