@@ -1,3 +1,5 @@
+import java.math.BigDecimal
+import java.math.RoundingMode
 import kotlin.math.roundToInt
 
 class Split private constructor(splitEntries: Set<Pair<String, Float>>) : HashMap<String, Float>() {
@@ -19,9 +21,12 @@ class Split private constructor(splitEntries: Set<Pair<String, Float>>) : HashMa
     init {
         val total = splitEntries
             .map { it.second }
-            .reduce { acc, next -> acc + next}
+            .sum()
+            .toBigDecimal()
+            // Float calculations can result in slightly inconsistent / non-round numbers. For the purposes of this check any extras past 2 decimal places can be considered acceptable inconsistency and can be removed and ignored
+            .setScale(2, RoundingMode.HALF_EVEN)
 
-        if (total > 100 || total < 99) {
+        if (total > BigDecimal(100) || total < BigDecimal(99)) {
             throw Exception("Cannot create split. Total split values not equal to 100")
         }
 
