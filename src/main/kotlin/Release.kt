@@ -5,10 +5,22 @@ import java.time.LocalDate
 
 data class Release(
     val catNo: String,
+    /**
+     * The date -> price map. If the price of the release is always the same then this only requires a single entry.
+     * Initial entry should be on the date at which sales began (NOT ANY TIME BEFORE) - including pre-release. This information is used to calculate discography bundle payouts.
+     */
+    val prices: Map<LocalDate, Int>,
     private val tracks: Set<Track>,
     private val contract: Contract,
     private val expenses: MutableList<Expense> = mutableListOf(),
-    private val sales: MutableList<Pair<Int, LocalDate>> = mutableListOf()
+    /**
+     * Can be set on construction to include any sales made that were external to Bandcamp to include these values in payout calculations.
+     */
+    private val sales: MutableList<Pair<Int, LocalDate>> = mutableListOf(),
+    /**
+     * The date at which sales stopped. May be kept null if sales were not stopped / still ongoing
+     */
+    private val salesStopDate: LocalDate? = null
 ) {
 
     fun applySale(saleItem: SaleItem) {
@@ -41,6 +53,26 @@ data class Release(
                 ?: throw Exception("No expense listed for artist when trying to calculate artist payout"))
             it.key to payout
         }.toMap()
+    }
+
+    fun priceOnDate(date: LocalDate): Int {
+        val priceDateIterator = prices.keys.asSequence()
+            .sorted()
+            .iterator()
+
+        var priceDate = priceDateIterator.next()
+        while (priceDateIterator.hasNext()) {
+            val temp = priceDateIterator.next()
+            if (temp.isBefore(date) || temp.isEqual(date))
+                priceDate = temp
+        }
+
+        return prices[priceDate] ?: throw Exception("Date found was not in price data! (Should not occur)")
+    }
+
+    fun wasActivelySellingOn(date: LocalDate): Boolean {
+        val salesStartDate = prices.keys.asSequence().min()
+        return (salesStartDate == date || salesStartDate.isBefore(date)) && salesStopDate?.isAfter(date) ?: true
     }
 
     fun findTrack(trackName: String): Track = tracks.find { it.name == trackName }

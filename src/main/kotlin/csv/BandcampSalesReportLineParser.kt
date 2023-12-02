@@ -1,5 +1,6 @@
 package csv
 
+import sales.BundleSale
 import sales.ReleaseSale
 import sales.SaleItem
 import sales.TrackSale
@@ -42,16 +43,23 @@ class BandcampSalesReportLineParser {
         }
 
         val saleValue = splitLine[headerIndices.netAmountIndex].replace(".", "").toInt()
-        val catNo = splitLine[headerIndices.catNoIndex]
         // Gets only the date, ignore time
         val dateString = splitLine[headerIndices.dateIndex].split(" ")[0]
         val date = LocalDate.parse(dateString, dateTimeFormatter)
 
         return when (itemType) {
-            "album" -> ReleaseSale(catNo, saleValue, date)
+            "album" -> {
+                val catNo = splitLine[headerIndices.catNoIndex]
+                ReleaseSale(catNo, saleValue, date)
+            }
             "track" -> {
+                val catNo = splitLine[headerIndices.catNoIndex]
                 val trackName = splitLine[headerIndices.itemNameIndex]
                 TrackSale(catNo, trackName, saleValue, date)
+            }
+            "bundle" -> {
+                val bundleName = splitLine[headerIndices.itemNameIndex]
+                BundleSale(bundleName, saleValue, date)
             }
             else -> throw Exception("Unrecognised item type.")
         }
