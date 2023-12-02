@@ -13,7 +13,7 @@ class TrackTest {
     }
 
     @Test
-    fun testCalculateTotalSalesFrom_HappyPathWithSingleArtist_EachArtistGetsHalfOfTotal() {
+    fun testCalculateTotalSalesBetween_HappyPathWithSingleArtist_EachArtistGetsHalfOfTotal() {
 
         val track = Track(TRACK_NAME, Split.singleSplit(ARTIST_1_NAME))
 
@@ -23,7 +23,7 @@ class TrackTest {
         track.applySale(saleValue, timeOfSale)
 
 
-        val sales: Map<String, Int> = track.calculateSalesFrom(timeOfSale.minusDays(1))
+        val sales: Map<String, Int> = track.calculateSalesBetween(timeOfSale.minusDays(1), timeOfSale.plusDays(1))
 
         assertThat(sales).containsOnly(
             (ARTIST_1_NAME to saleValue).toEntry()
@@ -31,7 +31,7 @@ class TrackTest {
     }
 
     @Test
-    fun testCalculateTotalSalesFrom_HappyPathWithEvenSplitBetweenTwoArtists_EachArtistGetsHalfOfTotal() {
+    fun testCalculateTotalSalesBetween_HappyPathWithEvenSplitBetweenTwoArtists_EachArtistGetsHalfOfTotal() {
 
         val track = Track(TRACK_NAME, Split.evenSplit(ARTIST_1_NAME, ARTIST_2_NAME))
 
@@ -40,7 +40,7 @@ class TrackTest {
         track.applySale(10, timeOfSale)
 
 
-        val sales: Map<String, Int> = track.calculateSalesFrom(timeOfSale.minusDays(1))
+        val sales: Map<String, Int> = track.calculateSalesBetween(timeOfSale.minusDays(1), timeOfSale.plusDays(1))
 
 
         assertThat(sales).containsOnly(
@@ -50,7 +50,7 @@ class TrackTest {
     }
 
     @Test
-    fun testCalculateTotalSalesFrom_HappyPathWithEvenSplitBetweenThreeArtists_EachArtistGetsAThirdRoundingToNearestInteger() {
+    fun testCalculateTotalSalesBetween_HappyPathWithEvenSplitBetweenThreeArtists_EachArtistGetsAThirdRoundingToNearestInteger() {
 
         val track = Track(TRACK_NAME, Split.evenSplit(ARTIST_1_NAME, ARTIST_2_NAME, ARTIST_3_NAME))
 
@@ -59,7 +59,7 @@ class TrackTest {
         track.applySale(20, timeOfSale)
 
 
-        val sales: Map<String, Int> = track.calculateSalesFrom(timeOfSale.minusDays(1))
+        val sales: Map<String, Int> = track.calculateSalesBetween(timeOfSale.minusDays(1), timeOfSale.plusDays(1))
 
 
         assertThat(sales).containsOnly(
@@ -70,7 +70,7 @@ class TrackTest {
     }
 
     @Test
-    fun testCalculateTotalSalesFrom_FromIsSameAsTimeOfSale_SaleIsIncludedInTotal() {
+    fun testCalculateTotalSalesBetween_FromIsSameAsTimeOfSale_SaleIsIncludedInTotal() {
 
         val track = Track(TRACK_NAME, Split.singleSplit(ARTIST_1_NAME))
 
@@ -80,14 +80,14 @@ class TrackTest {
         track.applySale(saleValue, timeOfSale)
 
 
-        val sales: Map<String, Int> = track.calculateSalesFrom(timeOfSale)
+        val sales: Map<String, Int> = track.calculateSalesBetween(timeOfSale, timeOfSale.plusDays(1))
 
 
         assertThat(sales).containsOnly((ARTIST_1_NAME to saleValue).toEntry())
     }
 
     @Test
-    fun testCalculateTotalSalesFrom_FromIsLaterThanSaleDate_SaleIsExcludedFromTotal() {
+    fun testCalculateTotalSalesBetween_FromIsLaterThanSaleDate_SaleIsExcludedFromTotal() {
 
         val track = Track(TRACK_NAME, Split.singleSplit(ARTIST_1_NAME))
 
@@ -96,7 +96,23 @@ class TrackTest {
         track.applySale(10, timeOfSale)
 
 
-        val sales: Map<String, Int> = track.calculateSalesFrom(timeOfSale.plusDays(1))
+        val sales: Map<String, Int> = track.calculateSalesBetween(timeOfSale.plusDays(1), timeOfSale.plusDays(2))
+
+
+        assertThat(sales).containsOnly((ARTIST_1_NAME to 0).toEntry())
+    }
+
+    @Test
+    fun testCalculateTotalSalesBetween_ToIsEarlierThanSaleDate_SaleIsExcludedFromTotal() {
+
+        val track = Track(TRACK_NAME, Split.singleSplit(ARTIST_1_NAME))
+
+        val timeOfSale = LocalDate.now()
+
+        track.applySale(10, timeOfSale)
+
+
+        val sales: Map<String, Int> = track.calculateSalesBetween(timeOfSale.minusDays(2), timeOfSale.minusDays(1))
 
 
         assertThat(sales).containsOnly((ARTIST_1_NAME to 0).toEntry())

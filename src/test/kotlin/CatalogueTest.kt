@@ -1,5 +1,6 @@
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class CatalogueTest {
 
@@ -28,9 +29,15 @@ class CatalogueTest {
             Expense(100_00, "Artwork")
         )
 
-        return Release("COMPLEX001", setOf(track1, track2, track3), Contract(
+        return Release(
+            catNo = "COMPLEX001",
+            tracks = setOf(track1, track2, track3),
+            prices = mapOf(Pair(LocalDate.now().minusDays(1), 10_00)),
+            contract = Contract(
             0f,
             0f),
-            expenses)
+            expenses = expenses
+
+        )
     }
 }
