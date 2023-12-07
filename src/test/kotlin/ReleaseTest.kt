@@ -26,7 +26,7 @@ class ReleaseTest {
             on { calculateSalesBetween(any(), any()) } doReturn mapOf(ARTIST_1_NAME to 0)
         }
 
-        val release = Release(CAT_NO, mapOf(Pair(LocalDate.now().minusDays(1), 20_00)), setOf(simpleTrack1), contract, mutableListOf(expense))
+        val release = Release(CAT_NO, mapOf(LocalDate.now().minusDays(1) to 20_00), setOf(simpleTrack1), contract, mutableListOf(expense))
 
         release.applySale(ReleaseSale(CAT_NO, 20_00, LocalDate.now().minusDays(1)))
     }

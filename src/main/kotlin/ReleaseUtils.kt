@@ -9,11 +9,11 @@ import java.time.LocalDate
 fun Collection<Release>.getBundleSplit(date: LocalDate): Split {
     val pricePerAlbum = asSequence()
         .filter { it.wasActivelySellingOn(date) }
-        .associate { Pair(it.catNo, it.priceOnDate(date)) }
+        .associate { it.catNo to it.priceOnDate(date) }
 
     val total = pricePerAlbum.values.sum()
     val part: Float = 100f / total
 
-    val pairs = pricePerAlbum.map { Pair(it.key, it.value * part) }
+    val pairs = pricePerAlbum.map { it.key to it.value * part }
     return Split.customSplit(*pairs.toTypedArray())
 }

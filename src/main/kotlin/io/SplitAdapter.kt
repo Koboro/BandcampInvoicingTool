@@ -16,7 +16,7 @@ class SplitAdapter: JsonDeserializer<Split> {
 
         val splitEntries = element.asJsonObject
             .asMap()
-            .map { Pair(it.key, it.value.asFloat) }
+            .map { it.key to it.value.asFloat }
             .toTypedArray()
 
         return Split.customSplit(*splitEntries)
