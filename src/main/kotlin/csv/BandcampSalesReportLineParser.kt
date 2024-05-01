@@ -21,6 +21,8 @@ class BandcampSalesReportLineParser {
     fun parse(line: String, headerIndices: HeaderIndices): SaleItem? {
         // Invalid line
         if (!line.contains(",")) return null
+        // Line can be empty (except csv delimiters) when sale history ends before listing pending transactions
+        if (line.all { it == ',' }) return null
 
         val formattedLine = line
             .replace("\u0000", "")
@@ -39,7 +41,7 @@ class BandcampSalesReportLineParser {
             // Merch - todo
             "package" -> return null
             // Ignore payouts
-            "payout" -> return null
+            "payout", "pending sale" -> return null
         }
 
         val saleValue = splitLine[headerIndices.netAmountIndex].replace(".", "").toInt()
