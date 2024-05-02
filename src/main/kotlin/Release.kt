@@ -1,3 +1,4 @@
+import sales.RawSaleData
 import sales.ReleaseSale
 import sales.SaleItem
 import sales.TrackSale
@@ -43,16 +44,62 @@ data class Release(
         expenses.add(expense)
     }
 
-    fun calculatePayout(from: LocalDate, to: LocalDate = LocalDate.now()): Map<String, Int> {
+    fun calculatePayout(from: LocalDate, to: LocalDate = LocalDate.now()): List<Payout> {
 
-        val outstandingExpensesPerArtist = calculateOutstandingExpensesPerArtist(from)
-        val sales = calculateSalesBetween(from, to)
+        return generateTotalPayout()
+            .filter { it.date.isAfter(from) || it.date.isEqual(from) }
+            .filter { it.date.isBefore(to) }
+    }
 
-        return sales.map {
-            val payout = contract.calculateArtistPayout(it.value, outstandingExpensesPerArtist[it.key]
-                ?: throw Exception("No expense listed for artist when trying to calculate artist payout"))
-            it.key to payout
-        }.toMap()
+    private fun generateTotalPayout(): List<Payout> {
+
+        val trackSales: List<RawSaleData> = tracks.flatMap { it.getSaleSharesMappedByContributingArtist() }
+        val releaseSales: List<RawSaleData> = sales.map { RawSaleData(null, catNo, it.first, it.second) }
+        val allSalesSortedByDate: List<RawSaleData> = (trackSales + releaseSales)
+            .sortedBy { it.date }
+        // The cursor date tracks when the last expense values were loaded. For the first cursor we take the very first sale date
+        var cursorDate = allSalesSortedByDate.getOrNull(0)?.date
+            // If no sales exist yet just return here
+            ?: return emptyList()
+
+        val totalDefaultExpenseValue = expenses.getExpenseValueUpTo(cursorDate)
+        val releaseSplit = calculateReleaseSplit()
+        var outstandingExpensesPerArtist = releaseSplit.calculateShares(totalDefaultExpenseValue).toMutableMap()
+
+        return allSalesSortedByDate.flatMap {rawSaleData ->
+
+            val valueOfSale = rawSaleData.value
+            val dateOfSale = rawSaleData.date
+
+            // If the date becomes later than the previous update of expense values then load the expense values that have occurred up to this new date
+            if (cursorDate.isBefore(dateOfSale)) {
+                val newExpenses = expenses.getTotalExpenseValueBetweenDates(cursorDate, dateOfSale)
+                outstandingExpensesPerArtist = outstandingExpensesPerArtist.addValues(releaseSplit.calculateShares(newExpenses)).toMutableMap()
+
+                // update cursor to this date
+                cursorDate = dateOfSale
+            }
+
+            if (rawSaleData.artist == null) {
+                return@flatMap releaseSplit.calculateShares(valueOfSale).map {
+                    calculateArtistPayout(it.key, "Release \"${rawSaleData.itemName}\"", it.value, dateOfSale, outstandingExpensesPerArtist)
+                }
+
+            } else {
+                return@flatMap listOf(calculateArtistPayout(rawSaleData.artist, "Track \"${rawSaleData.itemName}\"", valueOfSale, dateOfSale, outstandingExpensesPerArtist))
+            }
+        }
+    }
+
+    private fun calculateArtistPayout(artistName: String, itemName: String, valueOfSale: Int, date: LocalDate, outstandingExpensesPerArtist: MutableMap<String, Int>): Payout {
+        val artistOutstandingExpenses = outstandingExpensesPerArtist[artistName] ?: throw Exception("No expenses recognised for artist \"${artistName}\" for release $catNo")
+        val artistPayout = contract.calculateArtistPayout(valueOfSale, artistOutstandingExpenses)
+        val labelRecoupedValue = valueOfSale - artistPayout
+
+        val newExpenseValue = artistOutstandingExpenses - labelRecoupedValue
+        outstandingExpensesPerArtist[artistName] = newExpenseValue
+
+        return Payout(artistName, itemName, artistPayout, labelRecoupedValue, date)
     }
 
     fun priceOnDate(date: LocalDate): Int {

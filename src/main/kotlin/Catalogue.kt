@@ -32,11 +32,8 @@ class Catalogue {
         }
     }
 
-    /**
-     * @return the mappings of sales values to be distributed {Artist Name -> Sale Value}
-     */
-    fun calculatePayouts(from: LocalDate, to: LocalDate): Map<String, Int> {
-        return releases.map { it.calculatePayout(from, to) }.combineIntMapsWithSummedValues()
+    fun calculatePayouts(from: LocalDate, to: LocalDate): List<Payout> {
+        return releases.flatMap { it.calculatePayout(from, to) }
     }
 
     private fun applyReleaseSale(releaseSale: ReleaseSale) {

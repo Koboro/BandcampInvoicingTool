@@ -19,6 +19,10 @@ fun Map<String, Int>.minusValues(other: Map<String, Int>): Map<String, Int> = th
     .map { it.key to it.value - other.getValue(it.key) }
     .toMap()
 
+fun Map<String, Int>.addValues(other: Map<String, Int>): Map<String, Int> = this
+    .map { it.key to it.value + other.getValue(it.key) }
+    .toMap()
+
 fun <T> Collection<Map<T, Int>>.combineIntMapsWithSummedValues(): Map<T, Int> {
     val accumulator = mutableMapOf<T, Int>()
 
