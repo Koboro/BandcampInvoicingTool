@@ -25,15 +25,6 @@ data class Track(val name: String, val split: Split) {
         }
     }
 
-    fun calculateSalesUntil(until: LocalDate): Map<String, Int> {
-        val totalSales = sales
-            .filter { it.second.isBefore(until) }
-            .sumOf { it.first }
-
-        // Total sales * artist percentage split mapped
-        return split.calculateShares(totalSales)
-    }
-
     fun calculateSalesBetween(from: LocalDate, to: LocalDate): Map<String, Int> {
 
         val totalSales = sales
