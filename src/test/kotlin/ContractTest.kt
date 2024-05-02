@@ -84,4 +84,19 @@ class ContractTest {
         //of the 4 remaining after break even, 1 to label and 3 to artist
         assertThat(result).isEqualTo(11)
     }
+
+    @Test
+    fun testCalculateArtistPayout_SalesBreakEvenAndAbove_CorrectValueReturned_2() {
+
+        val contract = Contract(
+            50f,
+            0f
+        )
+
+        val result = contract.calculateArtistPayout(1_000, 250)
+
+        //500 to break even, split 250 to label
+        //of the 500 remaining after break even, all 500 to artist
+        assertThat(result).isEqualTo(750)
+    }
 }

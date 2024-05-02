@@ -47,11 +47,16 @@ data class Contract(
             return (totalSales * (labelPercentageBeforeBreakEven / 100)).toInt()
         }
 
-        val beforeBreakEven = (totalSales * (labelPercentageBeforeBreakEven / 100)).toInt()
+        val beforeBreakEven = (valueRequiredToBreakEven * (artistPercentageBeforeBreakEven() / 100)).toInt()
+
         val remaining = totalSales - valueRequiredToBreakEven
 
-        val afterBreakEven = (remaining * (labelPercentageAfterBreakEven / 100)).toInt()
+        val afterBreakEven = (remaining * (artistPercentageAfterBreakEven() / 100)).toInt()
 
         return beforeBreakEven + afterBreakEven
     }
+
+    private fun artistPercentageBeforeBreakEven(): Float = 100f - labelPercentageBeforeBreakEven
+
+    private fun artistPercentageAfterBreakEven(): Float = 100f - labelPercentageAfterBreakEven
 }
