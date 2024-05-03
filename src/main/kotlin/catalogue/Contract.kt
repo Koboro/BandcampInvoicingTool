@@ -1,3 +1,5 @@
+package catalogue
+
 /**
  * Class representing an agreed percentage split between the label and artists.
  * @param labelPercentageBeforeBreakEven The percentage of revenue that goes to the label before break-even is achieved on sales

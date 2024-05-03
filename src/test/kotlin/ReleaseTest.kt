@@ -1,8 +1,8 @@
+import catalogue.Contract
+import catalogue.Expense
+import catalogue.Split
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.any
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.mock
 import sales.ReleaseSale
 import sales.TrackSale
 import java.time.LocalDate

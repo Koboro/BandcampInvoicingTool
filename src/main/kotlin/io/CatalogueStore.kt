@@ -1,7 +1,7 @@
 package io
 
-import Catalogue
-import Split
+import catalogue.Split
+import catalogue.Catalogue
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import java.io.File

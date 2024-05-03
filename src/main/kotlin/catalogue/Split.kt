@@ -1,3 +1,5 @@
+package catalogue
+
 import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlin.math.roundToInt

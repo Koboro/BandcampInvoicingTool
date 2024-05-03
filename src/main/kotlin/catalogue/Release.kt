@@ -1,14 +1,15 @@
+package catalogue
+
+import addValues
+import combineFloatMapsWithSummedValues
 import payout.ItemDetails
 import payout.ItemType
-import payout.Payout
 import payout.LabelPayout
-import sales.RawSaleData
+import payout.Payout
 import sales.ReleaseSale
 import sales.SaleItem
 import sales.TrackSale
-import java.text.DecimalFormat
 import java.time.LocalDate
-import kotlin.text.StringBuilder
 
 data class Release(
     val catNo: String,
@@ -21,34 +22,12 @@ data class Release(
     private val contract: Contract,
     private val expenses: MutableList<Expense> = mutableListOf(),
     /**
-     * Can be set on construction to include any sales made that were external to Bandcamp to include these values in payout calculations.
-     */
-    private val sales: MutableList<Pair<Int, LocalDate>> = mutableListOf(),
-    /**
      * The date at which sales stopped. May be kept null if sales were not stopped / still ongoing
      */
     private val salesStopDate: LocalDate? = null
 ) {
 
-    fun applySale(saleItem: SaleItem) {
-        when (saleItem) {
-            is ReleaseSale -> {
-                sales.add(saleItem.value to saleItem.dateTime)
-            }
-            is TrackSale -> {
-                try {
-                    findTrack(saleItem.trackName)
-                } catch (e: Exception) {
-                    throw Exception("Could not apply track sale.", e)
-                }.applySale(saleItem.value, saleItem.dateTime)
-            }
-            else -> throw Exception("Unrecognised sale item.")
-        }
-    }
-
-    fun addExpense(expense: Expense) {
-        expenses.add(expense)
-    }
+    private val sales: MutableList<Sale> = mutableListOf()
 
     fun calculatePayout(from: LocalDate, to: LocalDate = LocalDate.now()): List<Payout> {
 
@@ -57,15 +36,63 @@ data class Release(
             .filter { it.date.isBefore(to) }
     }
 
+    fun addExternalSale(value: Int, date: LocalDate) {
+        addSale(Sale(value, date, SaleType.RELEASE))
+    }
+
+    internal fun addSale(saleItem: SaleItem) {
+        when (saleItem) {
+            is ReleaseSale -> {
+                sales.add(Sale(saleItem.value, saleItem.dateTime, SaleType.RELEASE))
+            }
+            is TrackSale -> {
+                try {
+                    findTrack(saleItem.trackName)
+                } catch (e: Exception) {
+                    throw Exception("Could not apply track sale.", e)
+                }.addSale(Sale(saleItem.value, saleItem.dateTime, SaleType.TRACK))
+            }
+            else -> throw Exception("Unrecognised sale item.")
+        }
+    }
+
+    internal fun priceOnDate(date: LocalDate): Int {
+        val priceDateIterator = prices.keys.asSequence()
+            .sorted()
+            .iterator()
+
+        var priceDate = priceDateIterator.next()
+        while (priceDateIterator.hasNext()) {
+            val temp = priceDateIterator.next()
+            if (temp.isBefore(date) || temp.isEqual(date))
+                priceDate = temp
+        }
+
+        return prices[priceDate] ?: throw Exception("Date found was not in price data! (Should not occur)")
+    }
+
+    internal fun wasActivelySellingOn(date: LocalDate): Boolean {
+        val salesStartDate = prices.keys.asSequence().min()
+        return (salesStartDate == date || salesStartDate.isBefore(date)) && salesStopDate?.isAfter(date) ?: true
+    }
+
+    internal fun findTrack(trackName: String): Track = tracks.find { it.name == trackName }
+        ?: throw IllegalArgumentException("Release $catNo does not contain track with name $trackName")
+
+
+    private fun addSale(sale: Sale) {
+        sales.add(sale)
+    }
+
     private fun generateTotalPayout(): List<Payout> {
 
-        val trackSales: List<RawSaleData> = tracks.flatMap { it.getSaleSharesMappedByContributingArtist() }
-        val releaseSales: List<RawSaleData> = sales.map { RawSaleData(null, catNo, it.first, it.second) }
-        val allSalesSortedByDate: List<RawSaleData> = (trackSales + releaseSales)
+        val trackSales: List<ArtistProportionedSale> = tracks.flatMap { it.getSaleSharesMappedByContributingArtist() }
+        val releaseSales: List<ArtistProportionedSale> = sales.map { ArtistProportionedSale(null, catNo, it.value, it.date) }
+        val allSalesSortedByDate: List<ArtistProportionedSale> = (trackSales + releaseSales)
             .sortedBy { it.date }
         // The cursor date tracks when the last expense values were loaded. For the first cursor we take the very first sale date
         var cursorDate = allSalesSortedByDate.getOrNull(0)?.date
-            // If no sales exist yet just return here
+        // If no sales exist yet just return here
             ?: return emptyList()
 
         val totalDefaultExpenseValue = expenses.getExpenseValueUpTo(cursorDate)
@@ -127,29 +154,6 @@ data class Release(
         .first { it.name == trackName }
         .split[artistName]
         ?: throw Exception("Could not find share for $artistName on track $trackName")
-
-    fun priceOnDate(date: LocalDate): Int {
-        val priceDateIterator = prices.keys.asSequence()
-            .sorted()
-            .iterator()
-
-        var priceDate = priceDateIterator.next()
-        while (priceDateIterator.hasNext()) {
-            val temp = priceDateIterator.next()
-            if (temp.isBefore(date) || temp.isEqual(date))
-                priceDate = temp
-        }
-
-        return prices[priceDate] ?: throw Exception("Date found was not in price data! (Should not occur)")
-    }
-
-    fun wasActivelySellingOn(date: LocalDate): Boolean {
-        val salesStartDate = prices.keys.asSequence().min()
-        return (salesStartDate == date || salesStartDate.isBefore(date)) && salesStopDate?.isAfter(date) ?: true
-    }
-
-    fun findTrack(trackName: String): Track = tracks.find { it.name == trackName }
-        ?: throw IllegalArgumentException("Release $catNo does not contain track with name $trackName")
 
     private fun calculateReleaseSplit(): Split {
 
