@@ -109,39 +109,39 @@ class ReleaseUtilsTest {
     fun generateTestReleases() = setOf(
         Release(
             catNo = RELEASE_1_CATNO,
-            prices = mapOf(
+            digitalPriceMap = mapOf(
                 // Originally £10 on release in 2000
                 Pair(LocalDate.of(2000, Month.JANUARY, 1), 10_00),
                 // Went down to £5 in 2010
                 Pair(LocalDate.of(2010, Month.JANUARY, 1), 5_00)
             ),
             tracks = setOf(),
-            contract = Contract(0f, 0f),
+            contract = Contract(0f, 0f,0f,0f),
             salesStopDate = LocalDate.of(2020, Month.JANUARY, 1)
         ),
 
         Release(
             catNo = RELEASE_2_CATNO,
-            prices = mapOf(
+            digitalPriceMap = mapOf(
                 // Originally £20 on release in 2005
                 Pair(LocalDate.of(2005, Month.JANUARY, 1), 20_00),
                 // Went down to £10 in 2015
                 Pair(LocalDate.of(2015, Month.JANUARY, 1), 10_00)
             ),
             tracks = setOf(),
-            contract = Contract(0f, 0f)
+            contract = Contract(0f, 0f,0f,0f)
         ),
 
         Release(
             catNo = RELEASE_3_CATNO,
-            prices = mapOf(
+            digitalPriceMap = mapOf(
                 // Originally £10 on release in 2007
                 Pair(LocalDate.of(2007, Month.JANUARY, 1), 10_00),
                 // Went up to £20 in 2017
                 Pair(LocalDate.of(2017, Month.JANUARY, 1), 20_00)
             ),
             tracks = setOf(),
-            contract = Contract(0f, 0f)
+            contract = Contract(0f, 0f,0f,0f)
         )
     )
 }

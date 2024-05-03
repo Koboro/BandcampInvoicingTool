@@ -33,10 +33,12 @@ class CatalogueTest {
         return Release(
             catNo = "COMPLEX001",
             tracks = setOf(track1, track2, track3),
-            prices = mapOf(LocalDate.now().minusDays(1) to 10_00),
+            digitalPriceMap = mapOf(LocalDate.now().minusDays(1) to 10_00),
             contract = Contract(
             0f,
-            0f),
+            0f,
+                0f,
+                0f),
             expenses = expenses
 
         )

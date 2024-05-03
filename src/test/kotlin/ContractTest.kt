@@ -9,7 +9,8 @@ class ContractTest {
 
         val contract = Contract(
             25f,
-            0f
+            0f,
+            0f,0f
         )
 
         val result = contract.calculateOutstandingExpenses(200, 100)
@@ -22,7 +23,8 @@ class ContractTest {
 
         val contract = Contract(
             50f,
-            0f
+            0f,
+            0f,0f
         )
 
 
@@ -36,7 +38,8 @@ class ContractTest {
 
         val contract = Contract(
             50f,
-            0f
+            0f,
+            0f,0f
         )
 
 
@@ -50,10 +53,11 @@ class ContractTest {
 
         val contract = Contract(
             50f,
-            25f
+            25f,
+            0f,0f
         )
 
-        val result = contract.calculateArtistPayout(20, 0)
+        val result = contract.calculateArtistPayoutForDigitalSales(20, 0)
 
         assertThat(result).isEqualTo(15)
     }
@@ -63,10 +67,11 @@ class ContractTest {
 
         val contract = Contract(
             50f,
-            25f
+            25f,
+            0f,0f
         )
 
-        val result = contract.calculateArtistPayout(20, 20)
+        val result = contract.calculateArtistPayoutForDigitalSales(20, 20)
 
         assertThat(result).isEqualTo(10)
     }
@@ -76,10 +81,11 @@ class ContractTest {
 
         val contract = Contract(
             50f,
-            25f
+            25f,
+            0f,0f
         )
 
-        val result = contract.calculateArtistPayout(20, 8)
+        val result = contract.calculateArtistPayoutForDigitalSales(20, 8)
 
         //16 to break even, split 50 to label
         //of the 4 remaining after break even, 1 to label and 3 to artist
@@ -91,10 +97,11 @@ class ContractTest {
 
         val contract = Contract(
             50f,
-            0f
+            0f,
+            0f,0f
         )
 
-        val result = contract.calculateArtistPayout(1_000, 250)
+        val result = contract.calculateArtistPayoutForDigitalSales(1_000, 250)
 
         //500 to break even, split 250 to label
         //of the 500 remaining after break even, all 500 to artist

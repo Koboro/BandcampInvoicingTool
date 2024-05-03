@@ -19,7 +19,7 @@ data class Track(val name: String, val split: Split) {
             val artistToSaleValue = split.calculateShares(sale.value)
 
             artistToSaleValue.map {
-                ArtistProportionedSale(it.key, name, it.value, sale.date)
+                ArtistProportionedSale(it.key, name, it.value, sale.date, sale.saleType)
             }.asSequence()
         }
     }

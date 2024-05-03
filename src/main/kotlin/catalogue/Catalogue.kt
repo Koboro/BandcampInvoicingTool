@@ -1,10 +1,7 @@
 package catalogue
 
 import payout.Payout
-import sales.BundleSale
-import sales.ReleaseSale
-import sales.SalesReport
-import sales.TrackSale
+import sales.*
 import java.time.LocalDate
 
 class Catalogue(private val releases: MutableList<Release> = mutableListOf()) {
@@ -19,7 +16,8 @@ class Catalogue(private val releases: MutableList<Release> = mutableListOf()) {
             when (saleItem) {
                 is ReleaseSale -> applyReleaseSale(saleItem)
                 is TrackSale -> applyTrackSale(saleItem)
-                is BundleSale -> applyBundleSale(saleItem)
+                is DigitalDiscographySale -> applyDigitalDiscographySale(saleItem)
+                is PhysicalSale -> applyPhysicalSale(saleItem)
                 else -> throw Exception("Unrecognised sale type")
             }
         }
@@ -36,22 +34,32 @@ class Catalogue(private val releases: MutableList<Release> = mutableListOf()) {
     private fun applyTrackSale(trackSale: TrackSale) {
         val track: Track = findRelease(trackSale.catNo).findTrack(trackSale.trackName)
 
-        track.addSale(Sale(trackSale.value, trackSale.dateTime, SaleType.BUNDLE))
+        track.addSale(Sale(trackSale.value, trackSale.dateTime, SaleType.TRACK))
     }
 
-    private fun applyBundleSale(bundleSale: BundleSale) {
+    private fun applyDigitalDiscographySale(digitalDiscographySale: DigitalDiscographySale) {
 
-        if (bundleSale.itemName.contains("full digital discography")) {
-            releases.getBundleSplit(bundleSale.dateTime)
-                .calculateShares(bundleSale.value)
-                .map { ReleaseSale(it.key, it.value, bundleSale.dateTime) }
-                .forEach(this::applyReleaseSale)
+        if (digitalDiscographySale.itemName.contains("full digital discography")) {
+            releases.getBundleSplit(digitalDiscographySale.dateTime)
+                .calculateShares(digitalDiscographySale.value)
+                .map { ReleaseSale(it.key, it.value, digitalDiscographySale.dateTime) }
+                .forEach { findRelease(it.catNo).addDigitalDiscographySale(it.value, it.dateTime) }
         } else {
             // Only supports digital discography bundles right now
             throw Exception("No appropriate actions for bundle item")
         }
     }
 
+    private fun applyPhysicalSale(physicalSale: PhysicalSale) {
+        try {
+            findRelease(physicalSale.catNo)
+        } catch (e: Exception) {
+
+            println("Physical sale with no associated release found. Package name: \"${physicalSale.packageName}\". Ignoring...")
+            return
+        }.addSale(physicalSale)
+    }
+
     private fun findRelease(catNo: String): Release = releases.find { it.catNo == catNo }
-        ?: throw Exception("No release applicable for sale")
+        ?: throw Exception("No release with $catNo found in catalogue")
 }

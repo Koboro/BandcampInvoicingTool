@@ -18,7 +18,8 @@ class ReleaseTest {
     fun testCalculatePayout_HappyPath_BeforeExpensesPaid_CorrectAmount() {
         val contract = Contract(
             50f,
-            0f
+            0f,
+            0f,0f
         )
 
         val expense = Expense(20_00, "test-expense-1")
@@ -34,7 +35,8 @@ class ReleaseTest {
     fun testCalculatePayout_HappyPath_PayoutCalculatedCorrectly() {
         val contract = Contract(
             50f,
-            0f
+            0f,
+            0f,0f
         )
 
         val expense = Expense(10_00, "test-expense-1")
@@ -43,7 +45,7 @@ class ReleaseTest {
 
         val release = Release(
             catNo =  CAT_NO,
-            prices = mapOf(LocalDate.now().minusDays(2) to 5_00),
+            digitalPriceMap = mapOf(LocalDate.now().minusDays(2) to 5_00),
             tracks = setOf(simpleTrack1),
             contract = contract,
             expenses = mutableListOf(expense)
@@ -72,7 +74,8 @@ class ReleaseTest {
     fun testCalculatePayout_Complex1_PayoutCalculatedCorrectly() {
         val contract = Contract(
             50f,
-            0f
+            0f,
+            0f,0f
         )
 
         val expense = Expense(400, "test-expense-1")
@@ -83,7 +86,7 @@ class ReleaseTest {
 
         val release = Release(
             catNo =  CAT_NO,
-            prices = mapOf(LocalDate.now().minusDays(2) to 400),
+            digitalPriceMap = mapOf(LocalDate.now().minusDays(2) to 400),
             tracks = setOf(soloTrack, collaborationTrack),
             contract=  contract,
             expenses = mutableListOf(expense)
@@ -105,7 +108,8 @@ class ReleaseTest {
     fun testCalculatePayout_ComplexFromASpecificDate_PayoutCalculatedCorrectly() {
         val contract = Contract(
             50f,
-            0f
+            0f,
+            0f,0f
         )
 
         val expense = Expense(400, "test-expense-1")
@@ -116,7 +120,7 @@ class ReleaseTest {
 
         val release = Release(
             catNo =  CAT_NO,
-            prices = mapOf(LocalDate.now().minusDays(2) to 400),
+            digitalPriceMap = mapOf(LocalDate.now().minusDays(2) to 400),
             tracks = setOf(soloTrack, collaborationTrack),
             contract=  contract,
             expenses = mutableListOf(expense)
@@ -136,7 +140,8 @@ class ReleaseTest {
     fun testCalculatePayout_DelayedExpenseIncluded_PayoutCalculatedCorrectly() {
         val contract = Contract(
             50f,
-            0f
+            0f,
+            0f,0f
         )
 
         val expense = Expense(100, "delayed-expense", day(2))
@@ -145,7 +150,7 @@ class ReleaseTest {
 
         val release = Release(
             catNo =  CAT_NO,
-            prices = mapOf(day(0) to 200),
+            digitalPriceMap = mapOf(day(0) to 200),
             tracks = setOf(simpleTrack1),
             contract = contract,
             expenses = mutableListOf(expense)
@@ -162,7 +167,8 @@ class ReleaseTest {
     fun testCalculatePayout_DelayedExpenseAfterFirstSaleIncluded_PayoutCalculatedCorrectly() {
         val contract = Contract(
             50f,
-            0f
+            0f,
+            0f,0f
         )
 
         val expense = Expense(100, "delayed-expense", day(2))
@@ -171,7 +177,7 @@ class ReleaseTest {
 
         val release = Release(
             catNo =  CAT_NO,
-            prices = mapOf(day(0) to 200),
+            digitalPriceMap = mapOf(day(0) to 200),
             tracks = setOf(simpleTrack1),
             contract = contract,
             expenses = mutableListOf(expense)

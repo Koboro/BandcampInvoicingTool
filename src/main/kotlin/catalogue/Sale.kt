@@ -13,11 +13,13 @@ internal data class ArtistProportionedSale(
     val artist: String?,
     val itemName: String,
     val value: Int,
-    val date: LocalDate
+    val date: LocalDate,
+    val saleType: SaleType
 )
 
 internal enum class SaleType {
     TRACK,
     RELEASE,
-    BUNDLE
+    PHYSICAL,
+    DIGITAL_DISCOGRAPHY
 }

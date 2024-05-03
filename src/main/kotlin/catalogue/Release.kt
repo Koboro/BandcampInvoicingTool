@@ -6,6 +6,7 @@ import payout.ItemDetails
 import payout.ItemType
 import payout.LabelPayout
 import payout.Payout
+import sales.PhysicalSale
 import sales.ReleaseSale
 import sales.SaleItem
 import sales.TrackSale
@@ -17,7 +18,7 @@ data class Release(
      * The date -> price map. If the price of the release is always the same then this only requires a single entry.
      * Initial entry should be on the date at which sales began (NOT ANY TIME BEFORE) - including pre-release. This information is used to calculate discography bundle payouts.
      */
-    val prices: Map<LocalDate, Int>,
+    val digitalPriceMap: Map<LocalDate, Int>,
     private val tracks: Set<Track>,
     private val contract: Contract,
     private val expenses: MutableList<Expense> = mutableListOf(),
@@ -52,12 +53,22 @@ data class Release(
                     throw Exception("Could not apply track sale.", e)
                 }.addSale(Sale(saleItem.value, saleItem.dateTime, SaleType.TRACK))
             }
+            is PhysicalSale -> {
+                sales.add(Sale(saleItem.value, saleItem.dateTime, SaleType.PHYSICAL))
+            }
             else -> throw Exception("Unrecognised sale item.")
         }
     }
 
+    internal fun addDigitalDiscographySale(value: Int, date: LocalDate) {
+        addSale(Sale(value, date, SaleType.DIGITAL_DISCOGRAPHY))
+    }
+
     internal fun priceOnDate(date: LocalDate): Int {
-        val priceDateIterator = prices.keys.asSequence()
+
+        if (digitalPriceMap.isEmpty()) return 0
+
+        val priceDateIterator = digitalPriceMap.keys.asSequence()
             .sorted()
             .iterator()
 
@@ -68,11 +79,13 @@ data class Release(
                 priceDate = temp
         }
 
-        return prices[priceDate] ?: throw Exception("Date found was not in price data! (Should not occur)")
+        return digitalPriceMap[priceDate] ?: throw Exception("Cannot find price for $catNo on date $priceDate")
     }
 
     internal fun wasActivelySellingOn(date: LocalDate): Boolean {
-        val salesStartDate = prices.keys.asSequence().min()
+        if (digitalPriceMap.isEmpty()) return false
+
+        val salesStartDate = digitalPriceMap.keys.asSequence().min()
         return (salesStartDate == date || salesStartDate.isBefore(date)) && salesStopDate?.isAfter(date) ?: true
     }
 
@@ -87,7 +100,7 @@ data class Release(
     private fun generateTotalPayout(): List<Payout> {
 
         val trackSales: List<ArtistProportionedSale> = tracks.flatMap { it.getSaleSharesMappedByContributingArtist() }
-        val releaseSales: List<ArtistProportionedSale> = sales.map { ArtistProportionedSale(null, catNo, it.value, it.date) }
+        val releaseSales: List<ArtistProportionedSale> = sales.map { ArtistProportionedSale(null, catNo, it.value, it.date, it.saleType) }
         val allSalesSortedByDate: List<ArtistProportionedSale> = (trackSales + releaseSales)
             .sortedBy { it.date }
         // The cursor date tracks when the last expense values were loaded. For the first cursor we take the very first sale date
@@ -99,10 +112,10 @@ data class Release(
         val releaseSplit = calculateReleaseSplit()
         var outstandingExpensesPerArtist = releaseSplit.calculateShares(totalDefaultExpenseValue).toMutableMap()
 
-        return allSalesSortedByDate.flatMap {rawSaleData ->
+        return allSalesSortedByDate.flatMap { artistProportionedSale ->
 
-            val valueOfSale = rawSaleData.value
-            val dateOfSale = rawSaleData.date
+            val valueOfSale = artistProportionedSale.value
+            val dateOfSale = artistProportionedSale.date
 
             // If the date becomes later than the previous update of expense values then load the expense values that have occurred up to this new date
             if (cursorDate.isBefore(dateOfSale)) {
@@ -113,18 +126,18 @@ data class Release(
                 cursorDate = dateOfSale
             }
 
-            if (rawSaleData.artist == null) {
+            if (artistProportionedSale.artist == null) {
                 return@flatMap releaseSplit.calculateShares(valueOfSale).map {
                     val artistName = it.key
                     val share = releaseSplit[artistName] ?: throw Exception("No share recognised for artist \"$artistName\" for release $catNo")
-                    calculateArtistPayout(artistName, catNo, it.value, dateOfSale, outstandingExpensesPerArtist, ItemType.RELEASE, share)
+                    calculateArtistPayout(artistName, catNo, it.value, dateOfSale, outstandingExpensesPerArtist, artistProportionedSale.saleType, share)
                 }
 
             } else {
-                val artistName = rawSaleData.artist
-                val itemName = rawSaleData.itemName
+                val artistName = artistProportionedSale.artist
+                val itemName = artistProportionedSale.itemName
                 val share = findShareForTrack(itemName, artistName)
-                return@flatMap listOf(calculateArtistPayout(artistName, itemName, valueOfSale, dateOfSale, outstandingExpensesPerArtist, ItemType.TRACK, share))
+                return@flatMap listOf(calculateArtistPayout(artistName, itemName, valueOfSale, dateOfSale, outstandingExpensesPerArtist, artistProportionedSale.saleType, share))
             }
         }
     }
@@ -135,15 +148,26 @@ data class Release(
         valueOfSale: Int,
         date: LocalDate,
         outstandingExpensesPerArtist: MutableMap<String, Int>,
-        itemType: ItemType,
+        saleType: SaleType,
         share: Float
     ): Payout {
         val artistOutstandingExpenses = outstandingExpensesPerArtist[artistName] ?: throw Exception("No expenses recognised for artist \"${artistName}\" for release $catNo")
-        val artistPayout = contract.calculateArtistPayout(valueOfSale, artistOutstandingExpenses)
+        val artistPayout = if (saleType == SaleType.PHYSICAL) {
+            contract.calculateArtistPayoutForPhysicalSales(valueOfSale, artistOutstandingExpenses)
+        } else {
+            contract.calculateArtistPayoutForDigitalSales(valueOfSale, artistOutstandingExpenses)
+        }
         val labelRecoupedValue = valueOfSale - artistPayout
 
         val newExpenseValue = artistOutstandingExpenses - labelRecoupedValue
         outstandingExpensesPerArtist[artistName] = newExpenseValue
+
+        val itemType = when (saleType) {
+            SaleType.RELEASE -> ItemType.RELEASE
+            SaleType.DIGITAL_DISCOGRAPHY -> ItemType.DIGITAL_DISCOGRAPHY_SHARE
+            SaleType.TRACK -> ItemType.TRACK
+            SaleType.PHYSICAL -> ItemType.PHYSICAL
+        }
 
         val itemDetails = ItemDetails(itemName, itemType, share)
         val labelPayout = if (labelRecoupedValue <= 0) null else LabelPayout(catNo, labelRecoupedValue)

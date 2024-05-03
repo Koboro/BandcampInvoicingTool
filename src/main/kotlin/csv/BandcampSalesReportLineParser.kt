@@ -1,9 +1,6 @@
 package csv
 
-import sales.BundleSale
-import sales.ReleaseSale
-import sales.SaleItem
-import sales.TrackSale
+import sales.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatterBuilder
 import java.time.format.SignStyle
@@ -38,13 +35,11 @@ class BandcampSalesReportLineParser {
 
         val itemType = splitLine[headerIndices.itemTypeIndex]
         when (itemType) {
-            // Merch - todo
-            "package" -> return null
-            // Ignore payouts
+            // Ignore payouts & pending sales
             "payout", "pending sale" -> return null
         }
 
-        val saleValue = splitLine[headerIndices.netAmountIndex].replace(".", "").toInt()
+        val netSaleValue = splitLine[headerIndices.netAmountIndex].replace(".", "").toInt()
         // Gets only the date, ignore time
         val dateString = splitLine[headerIndices.dateIndex].split(" ")[0]
         val date = LocalDate.parse(dateString, dateTimeFormatter)
@@ -52,16 +47,26 @@ class BandcampSalesReportLineParser {
         return when (itemType) {
             "album" -> {
                 val catNo = splitLine[headerIndices.catNoIndex]
-                ReleaseSale(catNo, saleValue, date)
+                ReleaseSale(catNo, netSaleValue, date)
             }
             "track" -> {
                 val catNo = splitLine[headerIndices.catNoIndex]
                 val trackName = splitLine[headerIndices.itemNameIndex]
-                TrackSale(catNo, trackName, saleValue, date)
+                TrackSale(catNo, trackName, netSaleValue, date)
             }
             "bundle" -> {
                 val bundleName = splitLine[headerIndices.itemNameIndex]
-                BundleSale(bundleName, saleValue, date)
+
+                if (bundleName.startsWith("full digital discography"))
+                    DigitalDiscographySale(bundleName, netSaleValue, date)
+                else
+                    throw Exception("Unrecognised bundle \"${bundleName}\"")
+            }
+            "package" -> {
+                val catNo = splitLine[headerIndices.catNoIndex]
+                val packageName = splitLine[headerIndices.packageName]
+
+                PhysicalSale(packageName, netSaleValue, date, catNo)
             }
             else -> throw Exception("Unrecognised item type.")
         }
