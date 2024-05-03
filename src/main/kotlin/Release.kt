@@ -2,7 +2,9 @@ import sales.RawSaleData
 import sales.ReleaseSale
 import sales.SaleItem
 import sales.TrackSale
+import java.text.DecimalFormat
 import java.time.LocalDate
+import kotlin.text.StringBuilder
 
 data class Release(
     val catNo: String,
@@ -82,13 +84,26 @@ data class Release(
 
             if (rawSaleData.artist == null) {
                 return@flatMap releaseSplit.calculateShares(valueOfSale).map {
-                    calculateArtistPayout(it.key, "Release \"${rawSaleData.itemName}\"", it.value, dateOfSale, outstandingExpensesPerArtist)
+                    val itemName = generateReleaseItemNateForPayout(it.key, rawSaleData.itemName, releaseSplit)
+                    calculateArtistPayout(it.key, itemName, it.value, dateOfSale, outstandingExpensesPerArtist)
                 }
 
             } else {
-                return@flatMap listOf(calculateArtistPayout(rawSaleData.artist, "Track \"${rawSaleData.itemName}\"", valueOfSale, dateOfSale, outstandingExpensesPerArtist))
+                return@flatMap listOf(calculateArtistPayout(rawSaleData.artist, "[Track] ${rawSaleData.itemName}", valueOfSale, dateOfSale, outstandingExpensesPerArtist))
             }
         }
+    }
+
+    private fun generateReleaseItemNateForPayout(artistName: String, itemName: String, releaseSplit: Split): String {
+        val builder = StringBuilder( "[Release] $itemName")
+
+        val share = releaseSplit[artistName] ?: throw Exception("No share recognised for artist \"$artistName\" for release $catNo")
+        if (share < 100f) {
+            val decimalFormat = DecimalFormat("###.#")
+           builder.append( " (${decimalFormat.format(share.toBigDecimal())}% share of total sale)")
+        }
+
+        return builder.toString()
     }
 
     private fun calculateArtistPayout(artistName: String, itemName: String, valueOfSale: Int, date: LocalDate, outstandingExpensesPerArtist: MutableMap<String, Int>): Payout {
