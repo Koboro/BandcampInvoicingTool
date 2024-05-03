@@ -1,4 +1,6 @@
 import catalogue.Contract
+import catalogue.Release
+import catalogue.getBundleSplit
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.entry
 import org.junit.jupiter.api.Test

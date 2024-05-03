@@ -1,6 +1,4 @@
-import catalogue.Contract
-import catalogue.Expense
-import catalogue.Split
+import catalogue.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import sales.ReleaseSale
@@ -29,7 +27,7 @@ class ReleaseTest {
 
         val release = Release(CAT_NO, mapOf(LocalDate.now().minusDays(1) to 20_00), setOf(simpleTrack1), contract, mutableListOf(expense))
 
-        release.applySale(ReleaseSale(CAT_NO, 20_00, LocalDate.now().minusDays(1)))
+        release.addSale(ReleaseSale(CAT_NO, 20_00, LocalDate.now().minusDays(1)))
     }
 
     @Test
@@ -51,10 +49,10 @@ class ReleaseTest {
             expenses = mutableListOf(expense)
         )
 
-        release.applySale(ReleaseSale(CAT_NO, 5_00, LocalDate.now().minusDays(1)))
-        release.applySale(ReleaseSale(CAT_NO, 5_00, LocalDate.now().minusDays(1)))
-        release.applySale(ReleaseSale(CAT_NO, 5_00, LocalDate.now().minusDays(1)))
-        release.applySale(ReleaseSale(CAT_NO, 10_00, LocalDate.now().minusDays(1)))
+        release.addSale(ReleaseSale(CAT_NO, 5_00, LocalDate.now().minusDays(1)))
+        release.addSale(ReleaseSale(CAT_NO, 5_00, LocalDate.now().minusDays(1)))
+        release.addSale(ReleaseSale(CAT_NO, 5_00, LocalDate.now().minusDays(1)))
+        release.addSale(ReleaseSale(CAT_NO, 10_00, LocalDate.now().minusDays(1)))
 
         val payouts = release.calculatePayout(LocalDate.now().minusDays(3), LocalDate.now())
         assertThat(payouts).hasSize(4)
@@ -91,10 +89,10 @@ class ReleaseTest {
             expenses = mutableListOf(expense)
         )
 
-        release.applySale(ReleaseSale(CAT_NO, 400, LocalDate.now().minusDays(1)))
-        release.applySale(TrackSale(CAT_NO,"track-1", 200, LocalDate.now().minusDays(1)))
-        release.applySale(ReleaseSale(CAT_NO, 400, LocalDate.now().minusDays(1)))
-        release.applySale(ReleaseSale(CAT_NO, 400, LocalDate.now().minusDays(1)))
+        release.addSale(ReleaseSale(CAT_NO, 400, LocalDate.now().minusDays(1)))
+        release.addSale(TrackSale(CAT_NO,"track-1", 200, LocalDate.now().minusDays(1)))
+        release.addSale(ReleaseSale(CAT_NO, 400, LocalDate.now().minusDays(1)))
+        release.addSale(ReleaseSale(CAT_NO, 400, LocalDate.now().minusDays(1)))
 
         val payouts = release.calculatePayout(LocalDate.now().minusDays(3), LocalDate.now())
 
@@ -124,10 +122,10 @@ class ReleaseTest {
             expenses = mutableListOf(expense)
         )
 
-        release.applySale(ReleaseSale(CAT_NO, 400, LocalDate.now().minusDays(2)))
-        release.applySale(TrackSale(CAT_NO,"track-1", 200, LocalDate.now().minusDays(2)))
-        release.applySale(ReleaseSale(CAT_NO, 400, LocalDate.now().minusDays(1)))
-        release.applySale(ReleaseSale(CAT_NO, 400, LocalDate.now().minusDays(1)))
+        release.addSale(ReleaseSale(CAT_NO, 400, LocalDate.now().minusDays(2)))
+        release.addSale(TrackSale(CAT_NO,"track-1", 200, LocalDate.now().minusDays(2)))
+        release.addSale(ReleaseSale(CAT_NO, 400, LocalDate.now().minusDays(1)))
+        release.addSale(ReleaseSale(CAT_NO, 400, LocalDate.now().minusDays(1)))
 
         val payouts = release.calculatePayout(LocalDate.now().minusDays(1), LocalDate.now())
         assertThat(payouts.filter { it.artist == ARTIST_1_NAME }.sumOf { it.amount }).isEqualTo(550)
@@ -153,7 +151,7 @@ class ReleaseTest {
             expenses = mutableListOf(expense)
         )
 
-        release.applySale(ReleaseSale(CAT_NO, 400, day(3)))
+        release.addSale(ReleaseSale(CAT_NO, 400, day(3)))
 
         val payouts = release.calculatePayout(day(1), LocalDate.now())
         assertThat(payouts).hasSize(1)
@@ -179,8 +177,8 @@ class ReleaseTest {
             expenses = mutableListOf(expense)
         )
 
-        release.applySale(ReleaseSale(CAT_NO, 400, day(1)))
-        release.applySale(ReleaseSale(CAT_NO, 400, day(3)))
+        release.addSale(ReleaseSale(CAT_NO, 400, day(1)))
+        release.addSale(ReleaseSale(CAT_NO, 400, day(3)))
 
         val payouts = release.calculatePayout(day(3), LocalDate.now())
         assertThat(payouts).hasSize(1)

@@ -6,13 +6,7 @@ internal data class Sale(
     val value: Int,
     val date: LocalDate,
     val saleType: SaleType
-) {
-    fun isAfterOrDuring(from: LocalDate): Boolean =
-        this.date.isAfter(from) || this.date.isEqual(from)
-
-    fun isBefore(until: LocalDate): Boolean =
-        this.date.isBefore(until)
-}
+)
 
 internal data class ArtistProportionedSale(
     // Null value indicates this is for a release
