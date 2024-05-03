@@ -86,7 +86,7 @@ data class Contract(
         val valueRequiredToBreakEven = (outstandingExpenses / (labelPercentageBeforeBreakEven / 100)).toInt()
 
         if (valueRequiredToBreakEven > totalSales) {
-            return (totalSales * (labelPercentageBeforeBreakEven / 100)).toInt()
+            return (totalSales * (artistPercentageBeforeBreakEven / 100)).toInt()
         }
 
         val beforeBreakEven = (valueRequiredToBreakEven * (artistPercentageBeforeBreakEven / 100)).toInt()
