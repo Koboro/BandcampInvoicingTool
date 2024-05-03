@@ -25,9 +25,7 @@ class ReleaseTest {
 
         val expense = Expense(20_00, "test-expense-1")
 
-        val simpleTrack1 = mock<Track> {
-            on { calculateSalesBetween(any(), any()) } doReturn mapOf(ARTIST_1_NAME to 0)
-        }
+        val simpleTrack1 = Track("track-1", Split.singleSplit(ARTIST_1_NAME))
 
         val release = Release(CAT_NO, mapOf(LocalDate.now().minusDays(1) to 20_00), setOf(simpleTrack1), contract, mutableListOf(expense))
 
@@ -60,16 +58,16 @@ class ReleaseTest {
 
         val payouts = release.calculatePayout(LocalDate.now().minusDays(3), LocalDate.now())
         assertThat(payouts).hasSize(4)
-        assertThat(payouts.sumOf { it.labelRecoupValue }).isEqualTo(expense.value)
+        assertThat(payouts.sumOf { it.getLabelPayoutValue() }).isEqualTo(expense.value)
 
-        assertThat(payouts[0].artistPayoutValue).isEqualTo(250)
-        assertThat(payouts[0].labelRecoupValue).isEqualTo(250)
-        assertThat(payouts[1].artistPayoutValue).isEqualTo(250)
-        assertThat(payouts[1].labelRecoupValue).isEqualTo(250)
-        assertThat(payouts[2].artistPayoutValue).isEqualTo(250)
-        assertThat(payouts[2].labelRecoupValue).isEqualTo(250)
-        assertThat(payouts[3].artistPayoutValue).isEqualTo(750)
-        assertThat(payouts[3].labelRecoupValue).isEqualTo(250)
+        assertThat(payouts[0].amount).isEqualTo(250)
+        assertThat(payouts[0].getLabelPayoutValue()).isEqualTo(250)
+        assertThat(payouts[1].amount).isEqualTo(250)
+        assertThat(payouts[1].getLabelPayoutValue()).isEqualTo(250)
+        assertThat(payouts[2].amount).isEqualTo(250)
+        assertThat(payouts[2].getLabelPayoutValue()).isEqualTo(250)
+        assertThat(payouts[3].amount).isEqualTo(750)
+        assertThat(payouts[3].getLabelPayoutValue()).isEqualTo(250)
     }
 
     @Test
@@ -100,9 +98,9 @@ class ReleaseTest {
 
         val payouts = release.calculatePayout(LocalDate.now().minusDays(3), LocalDate.now())
 
-        assertThat(payouts.sumOf { it.labelRecoupValue }).isEqualTo(400)
-        assertThat(payouts.filter { it.artist == ARTIST_1_NAME }.sumOf { it.artistPayoutValue }).isEqualTo(800)
-        assertThat(payouts.filter { it.artist == ARTIST_2_NAME }.sumOf { it.artistPayoutValue }).isEqualTo(200)
+        assertThat(payouts.sumOf { it.getLabelPayoutValue() }).isEqualTo(400)
+        assertThat(payouts.filter { it.artist == ARTIST_1_NAME }.sumOf { it.amount }).isEqualTo(800)
+        assertThat(payouts.filter { it.artist == ARTIST_2_NAME }.sumOf { it.amount }).isEqualTo(200)
     }
 
     @Test
@@ -132,8 +130,8 @@ class ReleaseTest {
         release.applySale(ReleaseSale(CAT_NO, 400, LocalDate.now().minusDays(1)))
 
         val payouts = release.calculatePayout(LocalDate.now().minusDays(1), LocalDate.now())
-        assertThat(payouts.filter { it.artist == ARTIST_1_NAME }.sumOf { it.artistPayoutValue }).isEqualTo(550)
-        assertThat(payouts.filter { it.artist == ARTIST_2_NAME }.sumOf { it.artistPayoutValue }).isEqualTo(150)
+        assertThat(payouts.filter { it.artist == ARTIST_1_NAME }.sumOf { it.amount }).isEqualTo(550)
+        assertThat(payouts.filter { it.artist == ARTIST_2_NAME }.sumOf { it.amount }).isEqualTo(150)
     }
 
     @Test
@@ -159,7 +157,7 @@ class ReleaseTest {
 
         val payouts = release.calculatePayout(day(1), LocalDate.now())
         assertThat(payouts).hasSize(1)
-        assertThat(payouts.sumOf { it.artistPayoutValue }).isEqualTo(300)
+        assertThat(payouts.sumOf { it.amount }).isEqualTo(300)
     }
 
     @Test
@@ -186,7 +184,7 @@ class ReleaseTest {
 
         val payouts = release.calculatePayout(day(3), LocalDate.now())
         assertThat(payouts).hasSize(1)
-        assertThat(payouts.sumOf { it.artistPayoutValue }).isEqualTo(300)
+        assertThat(payouts.sumOf { it.amount }).isEqualTo(300)
     }
 
     private fun day(day: Long): LocalDate {
