@@ -1,3 +1,7 @@
+import payout.ItemDetails
+import payout.ItemType
+import payout.Payout
+import payout.LabelPayout
 import sales.RawSaleData
 import sales.ReleaseSale
 import sales.SaleItem
@@ -84,29 +88,29 @@ data class Release(
 
             if (rawSaleData.artist == null) {
                 return@flatMap releaseSplit.calculateShares(valueOfSale).map {
-                    val itemName = generateReleaseItemNateForPayout(it.key, rawSaleData.itemName, releaseSplit)
-                    calculateArtistPayout(it.key, itemName, it.value, dateOfSale, outstandingExpensesPerArtist)
+                    val artistName = it.key
+                    val share = releaseSplit[artistName] ?: throw Exception("No share recognised for artist \"$artistName\" for release $catNo")
+                    calculateArtistPayout(artistName, catNo, it.value, dateOfSale, outstandingExpensesPerArtist, ItemType.RELEASE, share)
                 }
 
             } else {
-                return@flatMap listOf(calculateArtistPayout(rawSaleData.artist, "[Track] ${rawSaleData.itemName}", valueOfSale, dateOfSale, outstandingExpensesPerArtist))
+                val artistName = rawSaleData.artist
+                val itemName = rawSaleData.itemName
+                val share = findShareForTrack(itemName, artistName)
+                return@flatMap listOf(calculateArtistPayout(artistName, itemName, valueOfSale, dateOfSale, outstandingExpensesPerArtist, ItemType.TRACK, share))
             }
         }
     }
 
-    private fun generateReleaseItemNateForPayout(artistName: String, itemName: String, releaseSplit: Split): String {
-        val builder = StringBuilder( "[Release] $itemName")
-
-        val share = releaseSplit[artistName] ?: throw Exception("No share recognised for artist \"$artistName\" for release $catNo")
-        if (share < 100f) {
-            val decimalFormat = DecimalFormat("###.#")
-           builder.append( " (${decimalFormat.format(share.toBigDecimal())}% share of total sale)")
-        }
-
-        return builder.toString()
-    }
-
-    private fun calculateArtistPayout(artistName: String, itemName: String, valueOfSale: Int, date: LocalDate, outstandingExpensesPerArtist: MutableMap<String, Int>): Payout {
+    private fun calculateArtistPayout(
+        artistName: String,
+        itemName: String,
+        valueOfSale: Int,
+        date: LocalDate,
+        outstandingExpensesPerArtist: MutableMap<String, Int>,
+        itemType: ItemType,
+        share: Float
+    ): Payout {
         val artistOutstandingExpenses = outstandingExpensesPerArtist[artistName] ?: throw Exception("No expenses recognised for artist \"${artistName}\" for release $catNo")
         val artistPayout = contract.calculateArtistPayout(valueOfSale, artistOutstandingExpenses)
         val labelRecoupedValue = valueOfSale - artistPayout
@@ -114,8 +118,15 @@ data class Release(
         val newExpenseValue = artistOutstandingExpenses - labelRecoupedValue
         outstandingExpensesPerArtist[artistName] = newExpenseValue
 
-        return Payout(artistName, itemName, artistPayout, labelRecoupedValue, date)
+        val itemDetails = ItemDetails(itemName, itemType, share)
+        val labelPayout = if (labelRecoupedValue <= 0) null else LabelPayout(catNo, labelRecoupedValue)
+        return Payout(artistName, artistPayout, date, itemDetails, labelPayout)
     }
+
+    private fun findShareForTrack(trackName: String, artistName: String): Float = tracks
+        .first { it.name == trackName }
+        .split[artistName]
+        ?: throw Exception("Could not find share for $artistName on track $trackName")
 
     fun priceOnDate(date: LocalDate): Int {
         val priceDateIterator = prices.keys.asSequence()
