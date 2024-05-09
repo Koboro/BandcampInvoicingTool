@@ -1,12 +1,11 @@
-import catalogue.Contract
 import catalogue.Release
+import catalogue.SimpleContract
 import catalogue.getBundleSplit
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.entry
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.Month
-
 
 
 class ReleaseUtilsTest {
@@ -116,7 +115,7 @@ class ReleaseUtilsTest {
                 Pair(LocalDate.of(2010, Month.JANUARY, 1), 5_00)
             ),
             tracks = setOf(),
-            contract = Contract(0f, 0f,0f,0f),
+            contract = SimpleContract(0f, 0f,0f,0f),
             salesStopDate = LocalDate.of(2020, Month.JANUARY, 1)
         ),
 
@@ -129,7 +128,7 @@ class ReleaseUtilsTest {
                 Pair(LocalDate.of(2015, Month.JANUARY, 1), 10_00)
             ),
             tracks = setOf(),
-            contract = Contract(0f, 0f,0f,0f)
+            contract = SimpleContract(0f, 0f,0f,0f)
         ),
 
         Release(
@@ -141,7 +140,7 @@ class ReleaseUtilsTest {
                 Pair(LocalDate.of(2017, Month.JANUARY, 1), 20_00)
             ),
             tracks = setOf(),
-            contract = Contract(0f, 0f,0f,0f)
+            contract = SimpleContract(0f, 0f,0f,0f)
         )
     )
 }

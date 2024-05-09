@@ -34,7 +34,7 @@ class CatalogueTest {
             catNo = "COMPLEX001",
             tracks = setOf(track1, track2, track3),
             digitalPriceMap = mapOf(LocalDate.now().minusDays(1) to 10_00),
-            contract = Contract(
+            contract = SimpleContract(
             0f,
             0f,
                 0f,

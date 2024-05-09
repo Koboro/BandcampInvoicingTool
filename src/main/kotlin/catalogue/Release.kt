@@ -149,18 +149,9 @@ data class Release(
         date: LocalDate,
         outstandingExpensesPerArtist: MutableMap<String, Int>,
         saleType: SaleType,
-        share: Float
+        proportionOfTotalSaleValue: Float
     ): Payout {
         val artistOutstandingExpenses = outstandingExpensesPerArtist[artistName] ?: throw Exception("No expenses recognised for artist \"${artistName}\" for release $catNo")
-        val artistPayout = if (saleType == SaleType.PHYSICAL) {
-            contract.calculateArtistPayoutForPhysicalSales(valueOfSale, artistOutstandingExpenses)
-        } else {
-            contract.calculateArtistPayoutForDigitalSales(valueOfSale, artistOutstandingExpenses)
-        }
-        val labelRecoupedValue = valueOfSale - artistPayout
-
-        val newExpenseValue = artistOutstandingExpenses - labelRecoupedValue
-        outstandingExpensesPerArtist[artistName] = newExpenseValue
 
         val itemType = when (saleType) {
             SaleType.RELEASE -> ItemType.RELEASE
@@ -169,9 +160,14 @@ data class Release(
             SaleType.PHYSICAL -> ItemType.PHYSICAL
         }
 
-        val itemDetails = ItemDetails(itemName, itemType, share)
-        val labelPayout = if (labelRecoupedValue <= 0) null else LabelPayout(catNo, labelRecoupedValue)
-        return Payout(artistName, artistPayout, date, itemDetails, labelPayout)
+        val share = contract.calculateSaleShare(valueOfSale, itemType, artistOutstandingExpenses)
+
+        val newExpenseValue = artistOutstandingExpenses - share.labelShare
+        outstandingExpensesPerArtist[artistName] = newExpenseValue
+
+        val itemDetails = ItemDetails(itemName, itemType, proportionOfTotalSaleValue)
+        val labelPayout = if (share.labelShare <= 0) null else LabelPayout(catNo, share.labelShare)
+        return Payout(artistName, share.artistShare, date, itemDetails, labelPayout)
     }
 
     private fun findShareForTrack(trackName: String, artistName: String): Float = tracks

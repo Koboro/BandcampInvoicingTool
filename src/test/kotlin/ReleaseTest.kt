@@ -16,7 +16,7 @@ class ReleaseTest {
 
     @Test
     fun testCalculatePayout_HappyPath_BeforeExpensesPaid_CorrectAmount() {
-        val contract = Contract(
+        val contract = SimpleContract(
             50f,
             0f,
             0f,0f
@@ -33,7 +33,7 @@ class ReleaseTest {
 
     @Test
     fun testCalculatePayout_HappyPath_PayoutCalculatedCorrectly() {
-        val contract = Contract(
+        val contract = SimpleContract(
             50f,
             0f,
             0f,0f
@@ -72,7 +72,7 @@ class ReleaseTest {
 
     @Test
     fun testCalculatePayout_Complex1_PayoutCalculatedCorrectly() {
-        val contract = Contract(
+        val contract = SimpleContract(
             50f,
             0f,
             0f,0f
@@ -106,7 +106,7 @@ class ReleaseTest {
 
     @Test
     fun testCalculatePayout_ComplexFromASpecificDate_PayoutCalculatedCorrectly() {
-        val contract = Contract(
+        val contract = SimpleContract(
             50f,
             0f,
             0f,0f
@@ -138,7 +138,7 @@ class ReleaseTest {
 
     @Test
     fun testCalculatePayout_DelayedExpenseIncluded_PayoutCalculatedCorrectly() {
-        val contract = Contract(
+        val contract = SimpleContract(
             50f,
             0f,
             0f,0f
@@ -165,7 +165,7 @@ class ReleaseTest {
 
     @Test
     fun testCalculatePayout_DelayedExpenseAfterFirstSaleIncluded_PayoutCalculatedCorrectly() {
-        val contract = Contract(
+        val contract = SimpleContract(
             50f,
             0f,
             0f,0f
