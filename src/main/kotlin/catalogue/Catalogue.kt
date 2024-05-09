@@ -34,16 +34,15 @@ class Catalogue(private val releases: MutableList<Release> = mutableListOf()) {
     private fun applyTrackSale(trackSale: TrackSale) {
         val track: Track = findRelease(trackSale.catNo).findTrack(trackSale.trackName)
 
-        track.addSale(Sale(trackSale.value, trackSale.dateTime, SaleType.TRACK))
+        track.addSale(Sale(trackSale.netValue, trackSale.dateTime, SaleType.TRACK))
     }
 
     private fun applyDigitalDiscographySale(digitalDiscographySale: DigitalDiscographySale) {
 
         if (digitalDiscographySale.itemName.contains("full digital discography")) {
             releases.getBundleSplit(digitalDiscographySale.dateTime)
-                .calculateShares(digitalDiscographySale.value)
-                .map { ReleaseSale(it.key, it.value, digitalDiscographySale.dateTime) }
-                .forEach { findRelease(it.catNo).addDigitalDiscographySale(it.value, it.dateTime) }
+                .calculateShares(digitalDiscographySale.netValue)
+                .forEach { findRelease(it.key).addDigitalDiscographySale(it.value, digitalDiscographySale.dateTime) }
         } else {
             // Only supports digital discography bundles right now
             throw Exception("No appropriate actions for bundle item")

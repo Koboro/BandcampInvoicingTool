@@ -4,6 +4,8 @@ import java.time.LocalDate
 
 data class DigitalDiscographySale(
     val itemName: String,
-    override val value: Int,
+    override val bandcampTransactionId: String,
+    override val netValue: Int,
+    override val grossValue: Int,
     override val dateTime: LocalDate
 ): SaleItem

@@ -39,7 +39,12 @@ class BandcampSalesReportLineParser {
             "payout", "pending sale" -> return null
         }
 
+        val bandcampTransactionId = splitLine[headerIndices.bandcampTransactionIdIndex]
         val netSaleValue = splitLine[headerIndices.netAmountIndex].replace(".", "").toInt()
+        val subTotalValue = splitLine[headerIndices.subTotalIndex].replace(".", "").toInt()
+        val additionalFanContributionValue = splitLine[headerIndices.additionalFanContributionIndex].replace(".", "").toInt()
+        val grossSaleValue = subTotalValue + additionalFanContributionValue
+
         // Gets only the date, ignore time
         val dateString = splitLine[headerIndices.dateIndex].split(" ")[0]
         val date = LocalDate.parse(dateString, dateTimeFormatter)
@@ -47,26 +52,26 @@ class BandcampSalesReportLineParser {
         return when (itemType) {
             "album" -> {
                 val catNo = splitLine[headerIndices.catNoIndex]
-                ReleaseSale(catNo, netSaleValue, date)
+                ReleaseSale(catNo, bandcampTransactionId, netSaleValue, grossSaleValue, date)
             }
             "track" -> {
                 val catNo = splitLine[headerIndices.catNoIndex]
                 val trackName = splitLine[headerIndices.itemNameIndex]
-                TrackSale(catNo, trackName, netSaleValue, date)
+                TrackSale(catNo, trackName, bandcampTransactionId, netSaleValue, grossSaleValue, date)
             }
             "bundle" -> {
                 val bundleName = splitLine[headerIndices.itemNameIndex]
 
                 if (bundleName.startsWith("full digital discography"))
-                    DigitalDiscographySale(bundleName, netSaleValue, date)
+                    DigitalDiscographySale(bundleName, bandcampTransactionId, netSaleValue, grossSaleValue, date)
                 else
                     throw Exception("Unrecognised bundle \"${bundleName}\"")
             }
             "package" -> {
                 val catNo = splitLine[headerIndices.catNoIndex]
-                val packageName = splitLine[headerIndices.packageName]
+                val packageName = splitLine[headerIndices.packageNameIndex]
 
-                PhysicalSale(packageName, netSaleValue, date, catNo)
+                PhysicalSale(packageName, bandcampTransactionId, netSaleValue, grossSaleValue, date, catNo)
             }
             else -> throw Exception("Unrecognised item type.")
         }

@@ -44,17 +44,17 @@ data class Release(
     internal fun addSale(saleItem: SaleItem) {
         when (saleItem) {
             is ReleaseSale -> {
-                sales.add(Sale(saleItem.value, saleItem.dateTime, SaleType.RELEASE))
+                sales.add(Sale(saleItem.netValue, saleItem.dateTime, SaleType.RELEASE))
             }
             is TrackSale -> {
                 try {
                     findTrack(saleItem.trackName)
                 } catch (e: Exception) {
                     throw Exception("Could not apply track sale.", e)
-                }.addSale(Sale(saleItem.value, saleItem.dateTime, SaleType.TRACK))
+                }.addSale(Sale(saleItem.netValue, saleItem.dateTime, SaleType.TRACK))
             }
             is PhysicalSale -> {
-                sales.add(Sale(saleItem.value, saleItem.dateTime, SaleType.PHYSICAL))
+                sales.add(Sale(saleItem.netValue, saleItem.dateTime, SaleType.PHYSICAL))
             }
             else -> throw Exception("Unrecognised sale item.")
         }
