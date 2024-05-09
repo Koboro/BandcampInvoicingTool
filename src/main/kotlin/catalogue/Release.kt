@@ -2,10 +2,7 @@ package catalogue
 
 import addValues
 import combineFloatMapsWithSummedValues
-import payout.ItemDetails
-import payout.ItemType
-import payout.LabelPayout
-import payout.Payout
+import payout.*
 import sales.PhysicalSale
 import sales.ReleaseSale
 import sales.SaleItem
@@ -33,35 +30,59 @@ data class Release(
     fun calculatePayout(from: LocalDate, to: LocalDate = LocalDate.now()): List<Payout> {
 
         return generateTotalPayout()
-            .filter { it.date.isAfter(from) || it.date.isEqual(from) }
-            .filter { it.date.isBefore(to) }
+            .filter { it.saleInformation.date.isAfter(from) || it.saleInformation.date.isEqual(from) }
+            .filter { it.saleInformation.date.isBefore(to) }
     }
 
     fun addExternalSale(value: Int, date: LocalDate) {
-        addSale(Sale(value, date, SaleType.RELEASE))
+        addSale(Sale("N/A (external)", value, value, date, SaleType.RELEASE))
     }
 
     internal fun addSale(saleItem: SaleItem) {
         when (saleItem) {
             is ReleaseSale -> {
-                sales.add(Sale(saleItem.netValue, saleItem.dateTime, SaleType.RELEASE))
+                sales.add(Sale(
+                    bandcampTransactionId = saleItem.bandcampTransactionId,
+                    netValue = saleItem.netValue,
+                    grossValue = saleItem.grossValue,
+                    date = saleItem.dateTime,
+                    saleType = SaleType.RELEASE)
+                )
             }
             is TrackSale -> {
                 try {
                     findTrack(saleItem.trackName)
                 } catch (e: Exception) {
                     throw Exception("Could not apply track sale.", e)
-                }.addSale(Sale(saleItem.netValue, saleItem.dateTime, SaleType.TRACK))
+                }.addSale(Sale(
+                    bandcampTransactionId = saleItem.bandcampTransactionId,
+                    netValue = saleItem.netValue,
+                    grossValue = saleItem.grossValue,
+                    date = saleItem.dateTime,
+                    saleType = SaleType.TRACK)
+                )
             }
             is PhysicalSale -> {
-                sales.add(Sale(saleItem.netValue, saleItem.dateTime, SaleType.PHYSICAL))
+                sales.add(Sale(
+                    bandcampTransactionId = saleItem.bandcampTransactionId,
+                    netValue = saleItem.netValue,
+                    grossValue = saleItem.grossValue,
+                    date = saleItem.dateTime,
+                    saleType = SaleType.PHYSICAL)
+                )
             }
             else -> throw Exception("Unrecognised sale item.")
         }
     }
 
     internal fun addDigitalDiscographySale(value: Int, date: LocalDate) {
-        addSale(Sale(value, date, SaleType.DIGITAL_DISCOGRAPHY))
+        addSale(Sale(
+            bandcampTransactionId = "N/A (digital discography)",
+            netValue = value,
+            grossValue = value, // TODO: Gross value?
+            date = date,
+            saleType = SaleType.DIGITAL_DISCOGRAPHY)
+        )
     }
 
     internal fun priceOnDate(date: LocalDate): Int {
@@ -100,7 +121,15 @@ data class Release(
     private fun generateTotalPayout(): List<Payout> {
 
         val trackSales: List<ArtistProportionedSale> = tracks.flatMap { it.getSaleSharesMappedByContributingArtist() }
-        val releaseSales: List<ArtistProportionedSale> = sales.map { ArtistProportionedSale(null, catNo, it.value, it.date, it.saleType) }
+        val releaseSales: List<ArtistProportionedSale> = sales.map { ArtistProportionedSale(
+            artist = null,
+            itemName = catNo,
+            bandcampTransactionId = it.bandcampTransactionId,
+            netValue = it.netValue,
+            grossValue = it.grossValue,
+            date = it.date,
+            saleType = it.saleType)
+        }
         val allSalesSortedByDate: List<ArtistProportionedSale> = (trackSales + releaseSales)
             .sortedBy { it.date }
         // The cursor date tracks when the last expense values were loaded. For the first cursor we take the very first sale date
@@ -114,7 +143,7 @@ data class Release(
 
         return allSalesSortedByDate.flatMap { artistProportionedSale ->
 
-            val valueOfSale = artistProportionedSale.value
+            val valueOfSale = artistProportionedSale.netValue
             val dateOfSale = artistProportionedSale.date
 
             // If the date becomes later than the previous update of expense values then load the expense values that have occurred up to this new date
@@ -129,15 +158,30 @@ data class Release(
             if (artistProportionedSale.artist == null) {
                 return@flatMap releaseSplit.calculateShares(valueOfSale).map {
                     val artistName = it.key
-                    val share = releaseSplit[artistName] ?: throw Exception("No share recognised for artist \"$artistName\" for release $catNo")
-                    calculateArtistPayout(artistName, catNo, it.value, dateOfSale, outstandingExpensesPerArtist, artistProportionedSale.saleType, share)
+                    val splitProportion = releaseSplit[artistName] ?: throw Exception("No share recognised for artist \"$artistName\" for release $catNo")
+                    val saleInformation = SaleInformation(
+                        bandcampTransactionId = artistProportionedSale.bandcampTransactionId,
+                        netValue = it.value,
+                        grossValue = artistProportionedSale.grossValue,
+                        date = dateOfSale,
+                        splitProportion = splitProportion
+                    )
+                    calculateArtistPayout(artistName, catNo, saleInformation, outstandingExpensesPerArtist, artistProportionedSale.saleType)
                 }
 
             } else {
                 val artistName = artistProportionedSale.artist
                 val itemName = artistProportionedSale.itemName
-                val share = findShareForTrack(itemName, artistName)
-                return@flatMap listOf(calculateArtistPayout(artistName, itemName, valueOfSale, dateOfSale, outstandingExpensesPerArtist, artistProportionedSale.saleType, share))
+                val splitProportion = findSplitProportionForTrack(itemName, artistName)
+                val saleInformation = SaleInformation(
+                    bandcampTransactionId = artistProportionedSale.bandcampTransactionId,
+                    netValue = valueOfSale,
+                    grossValue = artistProportionedSale.grossValue,
+                    date = dateOfSale,
+                    splitProportion = splitProportion
+                )
+
+                return@flatMap listOf(calculateArtistPayout(artistName, itemName, saleInformation, outstandingExpensesPerArtist, artistProportionedSale.saleType))
             }
         }
     }
@@ -145,11 +189,9 @@ data class Release(
     private fun calculateArtistPayout(
         artistName: String,
         itemName: String,
-        valueOfSale: Int,
-        date: LocalDate,
+        saleInformation: SaleInformation,
         outstandingExpensesPerArtist: MutableMap<String, Int>,
-        saleType: SaleType,
-        proportionOfTotalSaleValue: Float
+        saleType: SaleType
     ): Payout {
         val artistOutstandingExpenses = outstandingExpensesPerArtist[artistName] ?: throw Exception("No expenses recognised for artist \"${artistName}\" for release $catNo")
 
@@ -160,17 +202,17 @@ data class Release(
             SaleType.PHYSICAL -> ItemType.PHYSICAL
         }
 
-        val share = contract.calculateSaleShare(valueOfSale, itemType, artistOutstandingExpenses)
+        val share = contract.calculateSaleShare(saleInformation.netValue, itemType, artistOutstandingExpenses)
 
         val newExpenseValue = artistOutstandingExpenses - share.labelShare
         outstandingExpensesPerArtist[artistName] = newExpenseValue
 
-        val itemDetails = ItemDetails(itemName, itemType, proportionOfTotalSaleValue)
+        val itemDetails = ItemDetails(itemName, itemType)
         val labelPayout = if (share.labelShare <= 0) null else LabelPayout(catNo, share.labelShare)
-        return Payout(artistName, share.artistShare, date, itemDetails, labelPayout)
+        return Payout(artistName, share.artistShare, itemDetails, saleInformation, labelPayout)
     }
 
-    private fun findShareForTrack(trackName: String, artistName: String): Float = tracks
+    private fun findSplitProportionForTrack(trackName: String, artistName: String): Float = tracks
         .first { it.name == trackName }
         .split[artistName]
         ?: throw Exception("Could not find share for $artistName on track $trackName")

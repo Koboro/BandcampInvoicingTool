@@ -34,7 +34,13 @@ class Catalogue(private val releases: MutableList<Release> = mutableListOf()) {
     private fun applyTrackSale(trackSale: TrackSale) {
         val track: Track = findRelease(trackSale.catNo).findTrack(trackSale.trackName)
 
-        track.addSale(Sale(trackSale.netValue, trackSale.dateTime, SaleType.TRACK))
+        track.addSale(Sale(
+            bandcampTransactionId = trackSale.bandcampTransactionId,
+            netValue = trackSale.netValue,
+            grossValue = trackSale.grossValue,
+            date = trackSale.dateTime,
+            saleType = SaleType.TRACK)
+        )
     }
 
     private fun applyDigitalDiscographySale(digitalDiscographySale: DigitalDiscographySale) {

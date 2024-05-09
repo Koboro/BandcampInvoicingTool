@@ -16,10 +16,17 @@ data class Track(val name: String, val split: Split) {
     internal fun getSaleSharesMappedByContributingArtist(): List<ArtistProportionedSale> {
 
         return sales.flatMap { sale ->
-            val artistToSaleValue = split.calculateShares(sale.value)
+            val artistToSaleValue = split.calculateShares(sale.netValue)
 
             artistToSaleValue.map {
-                ArtistProportionedSale(it.key, name, it.value, sale.date, sale.saleType)
+                ArtistProportionedSale(
+                    artist = it.key,
+                    itemName = name,
+                    bandcampTransactionId = sale.bandcampTransactionId,
+                    netValue = it.value,
+                    grossValue = sale.grossValue,
+                    date = sale.date,
+                    saleType = sale.saleType)
             }.asSequence()
         }
     }
