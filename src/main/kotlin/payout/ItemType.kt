@@ -1,8 +1,9 @@
 package payout
 
 enum class ItemType {
-    RELEASE,
+    DIGITAL_RELEASE,
+    DIGITAL_RELEASE_EXTERNAL,
     DIGITAL_DISCOGRAPHY_SHARE,
-    PHYSICAL,
+    PHYSICAL_RELEASE,
     TRACK
 }

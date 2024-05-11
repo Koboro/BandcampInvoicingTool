@@ -42,4 +42,8 @@ class Split private constructor(splitEntries: Set<Pair<String, Float>>) : HashMa
      */
     fun calculateShares(value: Int): Map<String, Int> = map { it.key to (value * (it.value / 100)).roundToInt() }
         .toMap()
+
+    fun calculateSaleShares(netSaleValue: Int, grossSaleValue: Int): Map<String, Pair<Int, Int>> = map {
+        it.key to ((netSaleValue * (it.value / 100)).roundToInt() to (grossSaleValue * (it.value / 100)).roundToInt())
+    }.toMap()
 }

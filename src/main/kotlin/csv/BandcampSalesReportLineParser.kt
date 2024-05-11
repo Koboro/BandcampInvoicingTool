@@ -52,7 +52,7 @@ class BandcampSalesReportLineParser {
         return when (itemType) {
             "album" -> {
                 val catNo = splitLine[headerIndices.catNoIndex]
-                ReleaseSale(catNo, bandcampTransactionId, netSaleValue, grossSaleValue, date)
+                DigitalReleaseSale(catNo, bandcampTransactionId, netSaleValue, grossSaleValue, date)
             }
             "track" -> {
                 val catNo = splitLine[headerIndices.catNoIndex]
@@ -71,7 +71,26 @@ class BandcampSalesReportLineParser {
                 val catNo = splitLine[headerIndices.catNoIndex]
                 val packageName = splitLine[headerIndices.packageNameIndex]
 
-                PhysicalSale(packageName, bandcampTransactionId, netSaleValue, grossSaleValue, date, catNo)
+                if (catNo.isBlank()) {
+                    val itemName = splitLine[headerIndices.itemNameIndex]
+                    UncategorisedPhysicalSale(
+                        packageName = packageName,
+                        itemName = itemName,
+                        bandcampTransactionId = bandcampTransactionId,
+                        netValue = netSaleValue,
+                        grossValue = grossSaleValue,
+                        date = date
+                    )
+                } else {
+                    CategorisedPhysicalSale(
+                        packageName = packageName,
+                        catNo = catNo,
+                        bandcampTransactionId = bandcampTransactionId,
+                        netValue = netSaleValue,
+                        grossValue = grossSaleValue,
+                        date = date,
+                    )
+                }
             }
             else -> throw Exception("Unrecognised item type.")
         }

@@ -28,22 +28,10 @@ data class SimpleContract(
         }
     }
 
-    /*fun calculateOutstandingExpenses(totalSales: Int, totalExpenses: Int): Int {
-        val valueRequiredToBreakEven = (totalExpenses / (labelPercentageOnDigitalBeforeBreakEven / 100)).toInt()
-
-        if (totalSales >= valueRequiredToBreakEven) {
-            return 0
-        }
-
-        val labelPayout = (totalSales * (labelPercentageOnDigitalBeforeBreakEven / 100)).toInt()
-        return totalExpenses - labelPayout
-    }*/
-
-
     override fun calculateSaleShare(saleValue: Int, itemType: ItemType, outstandingExpenses: Int): Share {
         return when(itemType) {
 
-            ItemType.RELEASE, ItemType.TRACK, ItemType.DIGITAL_DISCOGRAPHY_SHARE ->
+            ItemType.DIGITAL_RELEASE, ItemType.DIGITAL_RELEASE_EXTERNAL, ItemType.TRACK, ItemType.DIGITAL_DISCOGRAPHY_SHARE ->
                 calculateArtistPayout(
                     saleValue,
                     outstandingExpenses,
@@ -51,7 +39,7 @@ data class SimpleContract(
                     labelPercentageOnDigitalAfterBreakEven
                 )
 
-            ItemType.PHYSICAL ->
+            ItemType.PHYSICAL_RELEASE ->
                 calculateArtistPayout(
                     saleValue,
                     outstandingExpenses,

@@ -8,9 +8,11 @@ import java.time.LocalDate
  * be `50`
  */
 data class SaleInformation(
-    val bandcampTransactionId: String,
+    val bandcampTransactionId: String?,
     val date: LocalDate,
     val netValue: Int,
     val grossValue: Int,
+    val totalNetValue: Int,
+    val totalGrossValue: Int,
     val splitProportion: Float
 )

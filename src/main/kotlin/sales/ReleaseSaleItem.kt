@@ -1,0 +1,3 @@
+package sales
+
+interface ReleaseSaleItem: CategorisedSaleItem

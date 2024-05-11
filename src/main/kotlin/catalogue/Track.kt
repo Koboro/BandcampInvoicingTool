@@ -1,33 +1,12 @@
 package catalogue
 
-data class Track(val name: String, val split: Split) {
+import sales.TrackSale
 
-    /**
-     * Sale values tracked by date where
-     * - first -> Integer value representing minor currency value
-     * - second -> Time of sale
-     */
-    internal val sales: MutableList<Sale> = mutableListOf()
+data class Track(internal val name: String, internal val split: Split) {
 
-    internal fun addSale(sale: Sale) {
+    internal val sales: MutableList<TrackSale> = mutableListOf()
+
+    internal fun addSale(sale: TrackSale) {
         sales.add(sale)
-    }
-
-    internal fun getSaleSharesMappedByContributingArtist(): List<ArtistProportionedSale> {
-
-        return sales.flatMap { sale ->
-            val artistToSaleValue = split.calculateShares(sale.netValue)
-
-            artistToSaleValue.map {
-                ArtistProportionedSale(
-                    artist = it.key,
-                    itemName = name,
-                    bandcampTransactionId = sale.bandcampTransactionId,
-                    netValue = it.value,
-                    grossValue = sale.grossValue,
-                    date = sale.date,
-                    saleType = sale.saleType)
-            }.asSequence()
-        }
     }
 }
